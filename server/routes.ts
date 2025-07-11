@@ -89,14 +89,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/computers", async (req, res) => {
     try {
-      console.log("Creating computer with data:", req.body);
       const computerData = insertComputerSchema.parse(req.body);
-      console.log("Parsed computer data:", computerData);
       const computer = await storage.createComputer(computerData);
-      console.log("Created computer:", computer);
       res.status(201).json(computer);
     } catch (error) {
-      console.error("Error creating computer:", error);
       if (error instanceof z.ZodError) {
         res.status(400).json({ message: "Invalid computer data", errors: error.errors });
       } else {

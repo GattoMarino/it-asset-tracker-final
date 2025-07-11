@@ -64,11 +64,6 @@ export const insertComputerSchema = createInsertSchema(computers).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).extend({
-  warrantyExpiry: z.string().optional().nullable().transform((val) => {
-    if (!val || val === '') return null;
-    return new Date(val);
-  }),
 });
 
 export const insertComputerHistorySchema = createInsertSchema(computerHistory).omit({

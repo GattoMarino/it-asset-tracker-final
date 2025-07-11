@@ -25,9 +25,11 @@ import {
 } from "@/components/ui/select";
 import { Save, X } from "lucide-react";
 import { useLocation } from "wouter";
-import { z } from "zod";
+import type { z } from "zod";
 
-const formSchema = insertComputerSchema;
+const formSchema = insertComputerSchema.extend({
+  warrantyExpiry: insertComputerSchema.shape.warrantyExpiry.optional(),
+});
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -47,7 +49,7 @@ export default function PCForm() {
       assignedTo: "",
       status: "active",
       notes: "",
-      warrantyExpiry: "",
+      warrantyExpiry: null,
     },
   });
 
@@ -57,7 +59,11 @@ export default function PCForm() {
 
   const createPCMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return apiRequest("POST", "/api/computers", data);
+      const submitData = {
+        ...data,
+        warrantyExpiry: data.warrantyExpiry || null,
+      };
+      return apiRequest("POST", "/api/computers", submitData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
@@ -232,7 +238,7 @@ export default function PCForm() {
                     <Input 
                       type="date" 
                       value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value || '')}
+                      onChange={(e) => field.onChange(e.target.value || null)}
                     />
                   </FormControl>
                   <FormMessage />
