@@ -25,10 +25,13 @@ import {
 } from "@/components/ui/select";
 import { Save, X } from "lucide-react";
 import { useLocation } from "wouter";
-import type { z } from "zod";
+import { z } from "zod";
 
 const formSchema = insertComputerSchema.extend({
-  warrantyExpiry: insertComputerSchema.shape.warrantyExpiry.optional(),
+  warrantyExpiry: z.string().optional().nullable().transform((val) => {
+    if (!val || val === '') return null;
+    return new Date(val);
+  }),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -49,7 +52,7 @@ export default function PCForm() {
       assignedTo: "",
       status: "active",
       notes: "",
-      warrantyExpiry: null,
+      warrantyExpiry: "",
     },
   });
 
