@@ -49,6 +49,7 @@ export default function PCForm() {
       assignedTo: "",
       status: "active",
       notes: "",
+      warrantyExpiry: null,
     },
   });
 
@@ -60,7 +61,7 @@ export default function PCForm() {
     mutationFn: async (data: FormData) => {
       const submitData = {
         ...data,
-        warrantyExpiry: data.warrantyExpiry ? new Date(data.warrantyExpiry) : null,
+        warrantyExpiry: data.warrantyExpiry || null,
       };
       return apiRequest("POST", "/api/computers", submitData);
     },
@@ -236,8 +237,8 @@ export default function PCForm() {
                   <FormControl>
                     <Input 
                       type="date" 
-                      value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                      onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value || null)}
                     />
                   </FormControl>
                   <FormMessage />

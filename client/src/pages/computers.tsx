@@ -18,9 +18,9 @@ import type { ComputerWithClient } from "@shared/schema";
 
 export default function Computers() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedClient, setSelectedClient] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [selectedBrand, setSelectedBrand] = useState<string>("");
+  const [selectedClient, setSelectedClient] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedPC, setSelectedPC] = useState<ComputerWithClient | null>(null);
 
   const { data: clients } = useQuery({
@@ -32,9 +32,9 @@ export default function Computers() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchQuery) params.append("query", searchQuery);
-      if (selectedClient) params.append("clientId", selectedClient);
-      if (selectedStatus) params.append("status", selectedStatus);
-      if (selectedBrand) params.append("brand", selectedBrand);
+      if (selectedClient && selectedClient !== "all") params.append("clientId", selectedClient);
+      if (selectedStatus && selectedStatus !== "all") params.append("status", selectedStatus);
+      if (selectedBrand && selectedBrand !== "all") params.append("brand", selectedBrand);
       
       const response = await fetch(`/api/computers?${params.toString()}`);
       if (!response.ok) throw new Error("Failed to fetch computers");
@@ -79,7 +79,7 @@ export default function Computers() {
                   <SelectValue placeholder="Tutti i clienti" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tutti i clienti</SelectItem>
+                  <SelectItem value="all">Tutti i clienti</SelectItem>
                   {clients?.map((client: any) => (
                     <SelectItem key={client.id} value={client.id.toString()}>
                       {client.name}
@@ -96,7 +96,7 @@ export default function Computers() {
                   <SelectValue placeholder="Tutti gli stati" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tutti gli stati</SelectItem>
+                  <SelectItem value="all">Tutti gli stati</SelectItem>
                   <SelectItem value="active">Attivo</SelectItem>
                   <SelectItem value="maintenance">In Assistenza</SelectItem>
                   <SelectItem value="dismissed">Dismesso</SelectItem>
@@ -113,7 +113,7 @@ export default function Computers() {
                   <SelectValue placeholder="Tutte le marche" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tutte le marche</SelectItem>
+                  <SelectItem value="all">Tutte le marche</SelectItem>
                   <SelectItem value="dell">Dell</SelectItem>
                   <SelectItem value="hp">HP</SelectItem>
                   <SelectItem value="lenovo">Lenovo</SelectItem>

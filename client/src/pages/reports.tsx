@@ -16,7 +16,7 @@ import { FileText, FileSpreadsheet, Download } from "lucide-react";
 
 export default function Reports() {
   const [reportType, setReportType] = useState("inventory");
-  const [selectedClient, setSelectedClient] = useState("");
+  const [selectedClient, setSelectedClient] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [format, setFormat] = useState("pdf");
@@ -129,7 +129,7 @@ export default function Reports() {
                         <SelectValue placeholder="Tutti i clienti" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tutti i clienti</SelectItem>
+                        <SelectItem value="all">Tutti i clienti</SelectItem>
                         {clients?.map((client: any) => (
                           <SelectItem key={client.id} value={client.id.toString()}>
                             {client.name}
