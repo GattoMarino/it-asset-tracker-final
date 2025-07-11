@@ -2,12 +2,15 @@ import {
   clients, 
   computers, 
   computerHistory,
+  computerActivities,
   type Client, 
   type InsertClient,
   type Computer,
   type InsertComputer,
   type ComputerHistory,
   type InsertComputerHistory,
+  type ComputerActivity,
+  type InsertComputerActivity,
   type ComputerWithClient,
   type ComputerWithHistory
 } from "@shared/schema";
@@ -35,6 +38,10 @@ export interface IStorage {
   // Computer History
   addComputerHistory(history: InsertComputerHistory): Promise<ComputerHistory>;
   getComputerHistory(computerId: number): Promise<ComputerHistory[]>;
+  
+  // Computer Activities
+  addComputerActivity(activity: InsertComputerActivity): Promise<ComputerActivity>;
+  getComputerActivities(computerId: number): Promise<ComputerActivity[]>;
   
   // Dashboard Stats
   getDashboardStats(): Promise<{
@@ -94,12 +101,14 @@ export class DatabaseStorage implements IStorage {
     if (computerData.length === 0) return undefined;
 
     const history = await this.getComputerHistory(id);
+    const activities = await this.getComputerActivities(id);
     
     const { computers: computer, clients: client } = computerData[0];
     return {
       ...computer,
       client: client!,
-      history
+      history,
+      activities
     };
   }
 
@@ -225,6 +234,22 @@ export class DatabaseStorage implements IStorage {
       .from(computerHistory)
       .where(eq(computerHistory.computerId, computerId))
       .orderBy(desc(computerHistory.createdAt));
+  }
+
+  async addComputerActivity(insertActivity: InsertComputerActivity): Promise<ComputerActivity> {
+    const [activity] = await db
+      .insert(computerActivities)
+      .values(insertActivity)
+      .returning();
+    return activity;
+  }
+
+  async getComputerActivities(computerId: number): Promise<ComputerActivity[]> {
+    return await db
+      .select()
+      .from(computerActivities)
+      .where(eq(computerActivities.computerId, computerId))
+      .orderBy(desc(computerActivities.createdAt));
   }
 
   async getDashboardStats(): Promise<{

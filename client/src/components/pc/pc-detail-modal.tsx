@@ -8,8 +8,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Printer, Edit, History, Clock } from "lucide-react";
-import type { ComputerWithClient, ComputerHistory } from "@shared/schema";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Printer, Edit, History, Clock, Activity } from "lucide-react";
+import type { ComputerWithClient, ComputerHistory, ComputerActivity } from "@shared/schema";
+import ActivityForm from "./activity-form";
+import PCEditForm from "./pc-edit-form";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
 
@@ -63,12 +66,48 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
         return "border-blue-400";
       case "assigned":
         return "border-green-400";
+      case "unassigned":
+        return "border-red-400";
       case "status_changed":
         return "border-yellow-400";
       case "note_added":
         return "border-purple-400";
       default:
         return "border-gray-400";
+    }
+  };
+
+  const getActivityTypeLabel = (type: string) => {
+    switch (type) {
+      case "hw_support":
+        return "Supporto Hardware";
+      case "sw_support":
+        return "Supporto Software";
+      case "local_assistance":
+        return "Assistenza Locale";
+      case "remote_assistance":
+        return "Assistenza Remoto";
+      case "other":
+        return "Altro";
+      default:
+        return type;
+    }
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "hw_support":
+        return "🔧";
+      case "sw_support":
+        return "💻";
+      case "local_assistance":
+        return "🏢";
+      case "remote_assistance":
+        return "🌐";
+      case "other":
+        return "📋";
+      default:
+        return "📋";
     }
   };
 
@@ -128,40 +167,95 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
               </CardContent>
             </Card>
 
-            {/* Assignment History */}
+            {/* History and Activities Section */}
             <Card>
               <CardContent className="p-6">
-                <h4 className="text-lg font-medium text-gray-800 mb-4">Storico Attività</h4>
-                <div className="space-y-4 max-h-64 overflow-y-auto">
-                  {pcDetails?.history?.length ? (
-                    pcDetails.history.map((entry: ComputerHistory) => (
-                      <div key={entry.id} className={`border-l-4 ${getActionColor(entry.action)} pl-4 py-2`}>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center">
-                              <span className="mr-2">{getActionIcon(entry.action)}</span>
-                              <p className="font-medium text-gray-800">{entry.description}</p>
+                <Tabs defaultValue="history" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="history" className="flex items-center gap-2">
+                      <History size={16} />
+                      Storico Assegnazioni
+                    </TabsTrigger>
+                    <TabsTrigger value="activities" className="flex items-center gap-2">
+                      <Activity size={16} />
+                      Attività di Supporto
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="history" className="mt-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-medium text-gray-800">Storico Assegnazioni</h4>
+                      {pcDetails && <PCEditForm pc={pcDetails} />}
+                    </div>
+                    
+                    <div className="space-y-4 max-h-64 overflow-y-auto">
+                      {pcDetails?.history?.length ? (
+                        pcDetails.history.map((entry: ComputerHistory) => (
+                          <div key={entry.id} className={`border-l-4 ${getActionColor(entry.action)} pl-4 py-2`}>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center">
+                                  <span className="mr-2">{getActionIcon(entry.action)}</span>
+                                  <p className="font-medium text-gray-800">{entry.description}</p>
+                                </div>
+                                {entry.newValue && (
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    Nuovo valore: {entry.newValue}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center text-xs text-gray-500 ml-4">
+                                <Clock size={12} className="mr-1" />
+                                {formatDistanceToNow(new Date(entry.createdAt), { 
+                                  addSuffix: true, 
+                                  locale: it 
+                                })}
+                              </div>
                             </div>
-                            {entry.newValue && (
-                              <p className="text-sm text-gray-600 mt-1">
-                                Nuovo valore: {entry.newValue}
-                              </p>
-                            )}
                           </div>
-                          <div className="flex items-center text-xs text-gray-500 ml-4">
-                            <Clock size={12} className="mr-1" />
-                            {formatDistanceToNow(new Date(entry.createdAt), { 
-                              addSuffix: true, 
-                              locale: it 
-                            })}
+                        ))
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Nessuna assegnazione registrata</p>
+                      )}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="activities" className="mt-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-medium text-gray-800">Attività di Supporto</h4>
+                      <ActivityForm computerId={pc.id} />
+                    </div>
+                    
+                    <div className="space-y-4 max-h-64 overflow-y-auto">
+                      {pcDetails?.activities && pcDetails.activities.length > 0 ? (
+                        pcDetails.activities.map((activity: ComputerActivity) => (
+                          <div key={activity.id} className="border-l-4 border-blue-400 pl-4 py-2">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center">
+                                  <span className="mr-2">{getActivityIcon(activity.type)}</span>
+                                  <p className="font-medium text-gray-800">{getActivityTypeLabel(activity.type)}</p>
+                                </div>
+                                {activity.notes && (
+                                  <p className="text-sm text-gray-600 mt-1">{activity.notes}</p>
+                                )}
+                              </div>
+                              <div className="flex items-center text-xs text-gray-500 ml-4">
+                                <Clock size={12} className="mr-1" />
+                                {formatDistanceToNow(new Date(activity.createdAt), { 
+                                  addSuffix: true, 
+                                  locale: it 
+                                })}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-center py-4">Nessuna attività registrata</p>
-                  )}
-                </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Nessuna attività registrata</p>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </div>

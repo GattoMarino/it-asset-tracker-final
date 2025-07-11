@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertClientSchema, insertComputerSchema } from "@shared/schema";
+import { insertClientSchema, insertComputerSchema, insertComputerActivitySchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -105,7 +105,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const updates = insertComputerSchema.partial().parse(req.body);
+      
+      // Get current computer data to track assignment changes
+      const currentComputer = await storage.getComputer(id);
+      if (!currentComputer) {
+        return res.status(404).json({ message: "Computer not found" });
+      }
+      
       const computer = await storage.updateComputer(id, updates);
+      
+      // Track assignment changes ONLY (not other modifications)
+      if (updates.assignedTo !== undefined && updates.assignedTo !== currentComputer.assignedTo) {
+        if (updates.assignedTo && updates.assignedTo !== currentComputer.assignedTo) {
+          await storage.addComputerHistory({
+            computerId: id,
+            action: "assigned",
+            description: `PC assigned to ${updates.assignedTo}`,
+            previousValue: currentComputer.assignedTo || "unassigned",
+            newValue: updates.assignedTo,
+          });
+        } else if (updates.assignedTo === null && currentComputer.assignedTo) {
+          await storage.addComputerHistory({
+            computerId: id,
+            action: "unassigned", 
+            description: `PC unassigned from ${currentComputer.assignedTo}`,
+            previousValue: currentComputer.assignedTo,
+            newValue: "unassigned",
+          });
+        }
+      }
+      
       res.json(computer);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -123,6 +152,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(history);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch computer history" });
+    }
+  });
+
+  // Computer Activities routes
+  app.post("/api/computers/:id/activities", async (req, res) => {
+    try {
+      const computerId = parseInt(req.params.id);
+      const activityData = insertComputerActivitySchema.parse({
+        ...req.body,
+        computerId
+      });
+      
+      const activity = await storage.addComputerActivity(activityData);
+      res.status(201).json(activity);
+    } catch (error) {
+      console.error("Error creating activity:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid activity data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create activity" });
+      }
+    }
+  });
+
+  app.get("/api/computers/:id/activities", async (req, res) => {
+    try {
+      const computerId = parseInt(req.params.id);
+      const activities = await storage.getComputerActivities(computerId);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      res.status(500).json({ message: "Failed to fetch activities" });
     }
   });
 

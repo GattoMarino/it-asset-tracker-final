@@ -36,6 +36,14 @@ export const computerHistory = pgTable("computer_history", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const computerActivities = pgTable("computer_activities", {
+  id: serial("id").primaryKey(),
+  computerId: integer("computer_id").references(() => computers.id).notNull(),
+  type: text("type").notNull(), // "hw_support", "sw_support", "local_assistance", "remote_assistance", "other"
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const clientsRelations = relations(clients, ({ many }) => ({
   computers: many(computers),
 }));
@@ -46,11 +54,19 @@ export const computersRelations = relations(computers, ({ one, many }) => ({
     references: [clients.id],
   }),
   history: many(computerHistory),
+  activities: many(computerActivities),
 }));
 
 export const computerHistoryRelations = relations(computerHistory, ({ one }) => ({
   computer: one(computers, {
     fields: [computerHistory.computerId],
+    references: [computers.id],
+  }),
+}));
+
+export const computerActivitiesRelations = relations(computerActivities, ({ one }) => ({
+  computer: one(computers, {
+    fields: [computerActivities.computerId],
     references: [computers.id],
   }),
 }));
@@ -71,12 +87,19 @@ export const insertComputerHistorySchema = createInsertSchema(computerHistory).o
   createdAt: true,
 });
 
+export const insertComputerActivitySchema = createInsertSchema(computerActivities).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Computer = typeof computers.$inferSelect;
 export type InsertComputer = z.infer<typeof insertComputerSchema>;
 export type ComputerHistory = typeof computerHistory.$inferSelect;
 export type InsertComputerHistory = z.infer<typeof insertComputerHistorySchema>;
+export type ComputerActivity = typeof computerActivities.$inferSelect;
+export type InsertComputerActivity = z.infer<typeof insertComputerActivitySchema>;
 
 export type ComputerWithClient = Computer & {
   client: Client;
@@ -85,4 +108,5 @@ export type ComputerWithClient = Computer & {
 export type ComputerWithHistory = Computer & {
   client: Client;
   history: ComputerHistory[];
+  activities: ComputerActivity[];
 };
