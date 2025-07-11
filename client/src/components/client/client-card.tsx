@@ -48,6 +48,9 @@ export default function ClientCard({ client }: ClientCardProps) {
         {client.type && (
           <p className="text-sm text-gray-600 mt-1">{client.type}</p>
         )}
+        {client.address && (
+          <p className="text-xs text-gray-500 mt-1">{client.address}</p>
+        )}
       </div>
       
       <CardContent className="p-6">

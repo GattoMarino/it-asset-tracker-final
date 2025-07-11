@@ -264,14 +264,12 @@ export class DatabaseStorage implements IStorage {
     desktopPCs: number;
     laptopPCs: number;
   }> {
-    const baseQuery = db.select({ count: sql<number>`count(*)` }).from(computers).where(eq(computers.clientId, clientId));
-    
-    const totalPCs = await baseQuery;
-    const activePCs = await baseQuery.where(and(eq(computers.clientId, clientId), eq(computers.status, 'active')));
-    const maintenancePCs = await baseQuery.where(and(eq(computers.clientId, clientId), eq(computers.status, 'maintenance')));
-    const dismissedPCs = await baseQuery.where(and(eq(computers.clientId, clientId), eq(computers.status, 'dismissed')));
-    const desktopPCs = await baseQuery.where(and(eq(computers.clientId, clientId), eq(computers.type, 'desktop')));
-    const laptopPCs = await baseQuery.where(and(eq(computers.clientId, clientId), eq(computers.type, 'laptop')));
+    const totalPCs = await db.select({ count: sql<number>`count(*)` }).from(computers).where(eq(computers.clientId, clientId));
+    const activePCs = await db.select({ count: sql<number>`count(*)` }).from(computers).where(and(eq(computers.clientId, clientId), eq(computers.status, 'active')));
+    const maintenancePCs = await db.select({ count: sql<number>`count(*)` }).from(computers).where(and(eq(computers.clientId, clientId), eq(computers.status, 'maintenance')));
+    const dismissedPCs = await db.select({ count: sql<number>`count(*)` }).from(computers).where(and(eq(computers.clientId, clientId), eq(computers.status, 'dismissed')));
+    const desktopPCs = await db.select({ count: sql<number>`count(*)` }).from(computers).where(and(eq(computers.clientId, clientId), eq(computers.type, 'desktop')));
+    const laptopPCs = await db.select({ count: sql<number>`count(*)` }).from(computers).where(and(eq(computers.clientId, clientId), eq(computers.type, 'laptop')));
 
     return {
       totalPCs: totalPCs[0].count,

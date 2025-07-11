@@ -34,15 +34,15 @@ export default function Sidebar() {
           
           return (
             <Link key={item.name} href={item.href}>
-              <a
+              <div
                 className={cn(
-                  "flex items-center px-6 py-3 text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors",
+                  "flex items-center px-6 py-3 text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors cursor-pointer",
                   isActive && "text-primary bg-blue-50 border-r-3 border-primary"
                 )}
               >
                 <Icon className="mr-3" size={20} />
                 {item.name}
-              </a>
+              </div>
             </Link>
           );
         })}
