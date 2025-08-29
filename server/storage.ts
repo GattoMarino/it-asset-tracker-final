@@ -1,10 +1,10 @@
-import { 
-  clients, 
-  computers, 
+import {
+  clients,
+  computers,
   computerHistory,
   computerActivities,
-  users, // Aggiunto users
-  type Client, 
+  users,
+  type Client,
   type InsertClient,
   type Computer,
   type InsertComputer,
@@ -14,8 +14,8 @@ import {
   type InsertComputerActivity,
   type ComputerWithClient,
   type ComputerWithHistory,
-  type User,       // Aggiunto User
-  type InsertUser, // Aggiunto InsertUser
+  type User,
+  type InsertUser,
 } from "../shared/schema.js";
 import { db } from "./db.js";
 import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
@@ -25,7 +25,7 @@ export interface IStorage {
   getAllClients(): Promise<Client[]>;
   getClient(id: number): Promise<Client | undefined>;
   createClient(client: InsertClient): Promise<Client>;
-  
+
   // Computers
   getAllComputers(): Promise<ComputerWithClient[]>;
   getComputer(id: number): Promise<ComputerWithHistory | undefined>;
@@ -37,15 +37,15 @@ export interface IStorage {
     status?: string;
     brand?: string;
   }): Promise<ComputerWithClient[]>;
-  
+
   // Computer History
   addComputerHistory(history: InsertComputerHistory): Promise<ComputerHistory>;
   getComputerHistory(computerId: number): Promise<ComputerHistory[]>;
-  
+
   // Computer Activities
   addComputerActivity(activity: InsertComputerActivity): Promise<ComputerActivity>;
   getComputerActivities(computerId: number): Promise<ComputerActivity[]>;
-  
+
   // Dashboard Stats
   getDashboardStats(): Promise<{
     totalPCs: number;
@@ -53,27 +53,26 @@ export interface IStorage {
     maintenancePCs: number;
     expiringSoon: number;
   }>;
-  
+
   getClientStats(clientId: number): Promise<{
     totalPCs: number;
-axPCs: number;
+    activePCs: number;
     maintenancePCs: number;
     dismissedPCs: number;
     desktopPCs: number;
     laptopPCs: number;
   }>;
-  
+
   getRecentActivity(): Promise<ComputerHistory[]>;
   getWarrantyAlerts(): Promise<ComputerWithClient[]>;
 
-  // ==> NUOVI METODI PER GLI UTENTI <==
+  // Users
   createUser(user: InsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // ... (tutti i metodi esistenti per clients, computers, ecc.) ...
-  
   async getAllClients(): Promise<Client[]> {
     return await db.select().from(clients).orderBy(clients.name);
   }
@@ -140,7 +139,6 @@ export class DatabaseStorage implements IStorage {
       updatedAt: new Date()
     }).returning();
     
-    // Add creation history
     await this.addComputerHistory({
       computerId: computer.id,
       action: "created",
@@ -157,7 +155,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(computers.id, id))
       .returning();
 
-    // Add update history
     if (updates.assignedTo) {
       await this.addComputerHistory({
         computerId: id,
@@ -340,7 +337,6 @@ export class DatabaseStorage implements IStorage {
       })));
   }
 
-  // ==> NUOVI METODI PER GLI UTENTI <==
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
@@ -350,6 +346,12 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
   }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
 }
 
 export const storage = new DatabaseStorage();
+
