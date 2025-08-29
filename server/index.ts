@@ -1,6 +1,7 @@
+// server/index.ts
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
-import { serveStatic, log } from "./vite.js";
+import { serveStatic, log } from "./utils.js";
 
 const app = express();
 app.use(express.json());
@@ -48,10 +49,11 @@ app.use((req, res, next) => {
   });
 
   if (process.env.NODE_ENV === "development") {
-    // Use dynamic import for development-only dependencies
+    // Usa l'import dinamico SOLO per lo sviluppo
     const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
   } else {
+    // In produzione, usa solo le funzioni di utility
     serveStatic(app);
   }
 
