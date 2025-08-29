@@ -3,6 +3,7 @@ import {
   computers, 
   computerHistory,
   computerActivities,
+  users, // Aggiunto users
   type Client, 
   type InsertClient,
   type Computer,
@@ -12,7 +13,9 @@ import {
   type ComputerActivity,
   type InsertComputerActivity,
   type ComputerWithClient,
-  type ComputerWithHistory
+  type ComputerWithHistory,
+  type User,       // Aggiunto User
+  type InsertUser, // Aggiunto InsertUser
 } from "../shared/schema.js";
 import { db } from "./db.js";
 import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
@@ -53,7 +56,7 @@ export interface IStorage {
   
   getClientStats(clientId: number): Promise<{
     totalPCs: number;
-    activePCs: number;
+axPCs: number;
     maintenancePCs: number;
     dismissedPCs: number;
     desktopPCs: number;
@@ -62,9 +65,15 @@ export interface IStorage {
   
   getRecentActivity(): Promise<ComputerHistory[]>;
   getWarrantyAlerts(): Promise<ComputerWithClient[]>;
+
+  // ==> NUOVI METODI PER GLI UTENTI <==
+  createUser(user: InsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
+  // ... (tutti i metodi esistenti per clients, computers, ecc.) ...
+  
   async getAllClients(): Promise<Client[]> {
     return await db.select().from(clients).orderBy(clients.name);
   }
@@ -329,6 +338,17 @@ export class DatabaseStorage implements IStorage {
         ...row.computers,
         client: row.clients!
       })));
+  }
+
+  // ==> NUOVI METODI PER GLI UTENTI <==
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
   }
 }
 

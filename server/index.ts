@@ -1,4 +1,3 @@
-// server/index.ts
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
 import { serveStatic, log } from "./utils.js";
@@ -49,20 +48,16 @@ app.use((req, res, next) => {
   });
 
   if (process.env.NODE_ENV === "development") {
-    // Usa l'import dinamico SOLO per lo sviluppo
+    // Use dynamic import for development-only dependencies
     const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
   } else {
-    // In produzione, usa solo le funzioni di utility
+    // In production, use only the static serving utility
     serveStatic(app);
   }
 
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  server.listen(port, "localhost", () => {
     log(`serving on port ${port}`);
   });
 })();

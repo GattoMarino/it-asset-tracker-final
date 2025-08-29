@@ -1,8 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
-import { insertClientSchema, insertComputerSchema, insertComputerActivitySchema } from "../shared/schema.js";
+import { insertClientSchema, insertComputerSchema, insertComputerActivitySchema, users } from "../shared/schema.js";
 import { z } from "zod";
+import bcrypt from "bcrypt";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Clients routes
@@ -51,6 +52,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch client stats" });
     }
   });
+
+  // --- AUTHENTICATION ROUTES ---
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      // 1. Get email and password from the request body
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // 2. Hash the password for security
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // 3. Call the storage layer to create the user in the database
+      const newUser = await storage.createUser({
+        email,
+        hashedPassword,
+      });
+
+      // 4. Respond with success (never send the password back!)
+      res.status(201).json({ id: newUser.id, email: newUser.email });
+
+    } catch (error: any) {
+      // Handle the error if the email is already in use
+      if (error.code === '23505') { // PostgreSQL unique violation error code
+        return res.status(409).json({ message: "Email already exists" });
+      }
+      console.error(error);
+      res.status(500).json({ message: "Failed to register user" });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      // 1. Get email and password from the request
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // 2. Find the user by email
+      const user = await storage.getUserByEmail(email);
+
+      // 3. If user doesn't exist or password is wrong, send a generic error
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      const isPasswordValid = await bcrypt.compare(password, user.hashedPassword);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // 4. LOGIN SUCCESSFUL: Save user ID in the session
+      // @ts-ignore - We'll tell TypeScript to ignore that 'userId' is not on the default session type
+      req.session.userId = user.id;
+
+      // 5. Respond with success
+      res.status(200).json({ id: user.id, email: user.email });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "An error occurred during login" });
+    }
+  });
+  // ------------------------------------
 
   // Computers routes
   app.get("/api/computers", async (req, res) => {
