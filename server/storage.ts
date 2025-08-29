@@ -14,7 +14,7 @@ import {
   type ComputerWithClient,
   type ComputerWithHistory
 } from "@shared/schema";
-import { db } from "./db";
+import { db } from "./db.js";
 import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
 
 export interface IStorage {
