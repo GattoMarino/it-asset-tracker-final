@@ -1,0 +1,900 @@
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Asset Manager - Sistema di Gestione Computer Aziendali</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e40af',
+                        secondary: '#6b7280',
+                        accent: '#3b82f6',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        error: '#ef4444'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans">
+    
+    <!-- @COMPONENT: Sidebar Navigation -->
+    <div class="flex h-screen bg-gray-50">
+        <aside class="w-64 bg-white shadow-lg">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-laptop text-primary mr-2"></i>
+                    PC Asset Manager
+                </h1>
+            </div>
+            <nav class="mt-6">
+                <a href="#" data-tab="dashboard" class="nav-item flex items-center px-6 py-3 text-primary bg-blue-50 border-r-3 border-primary">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" data-tab="computers" class="nav-item flex items-center px-6 py-3 text-gray-600 hover:text-primary hover:bg-gray-50">
+                    <i class="fas fa-desktop mr-3"></i>
+                    Gestione PC
+                </a>
+                <a href="#" data-tab="clients" class="nav-item flex items-center px-6 py-3 text-gray-600 hover:text-primary hover:bg-gray-50">
+                    <i class="fas fa-building mr-3"></i>
+                    Clienti
+                </a>
+                <a href="#" data-tab="add-pc" class="nav-item flex items-center px-6 py-3 text-gray-600 hover:text-primary hover:bg-gray-50">
+                    <i class="fas fa-plus mr-3"></i>
+                    Aggiungi PC
+                </a>
+                <a href="#" data-tab="reports" class="nav-item flex items-center px-6 py-3 text-gray-600 hover:text-primary hover:bg-gray-50">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Report
+                </a>
+            </nav>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar Navigation -->
+
+        <!-- @COMPONENT: Main Content Area -->
+        <main class="flex-1 overflow-y-auto">
+            
+            <!-- @COMPONENT: Dashboard Tab -->
+            <div id="dashboard-tab" class="tab-content p-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Overview</h2>
+                    <p class="text-gray-600">Panoramica generale del parco macchine aziendale</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-blue-100 rounded-full">
+                                <i class="fas fa-laptop text-primary text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Totale PC</p>
+                                <p class="text-2xl font-bold text-gray-800" data-bind="stats.totalPCs">247</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-green-100 rounded-full">
+                                <i class="fas fa-check-circle text-success text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">PC Attivi</p>
+                                <p class="text-2xl font-bold text-gray-800" data-bind="stats.activePCs">213</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-yellow-100 rounded-full">
+                                <i class="fas fa-tools text-warning text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">In Assistenza</p>
+                                <p class="text-2xl font-bold text-gray-800" data-bind="stats.maintenancePCs">18</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-red-100 rounded-full">
+                                <i class="fas fa-exclamation-triangle text-error text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Garanzia Scadente</p>
+                                <p class="text-2xl font-bold text-gray-800" data-bind="stats.expiringSoon">12</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity & Warranty Alerts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-lg shadow-md">
+                        <div class="p-6 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Attività Recenti</h3>
+                        </div>
+                        <div class="p-6">
+                            <!-- @MAP: recentActivities.map(activity => ( -->
+                            <div class="flex items-center py-3 border-b border-gray-100 last:border-b-0">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-edit text-primary text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-800" data-mock="true">PC-DELL-001 assegnato a Mario Rossi</p>
+                                    <p class="text-xs text-gray-500" data-mock="true">2 ore fa</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center py-3 border-b border-gray-100 last:border-b-0">
+                                <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-tools text-warning text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-800" data-mock="true">PC-HP-045 mandato in assistenza</p>
+                                    <p class="text-xs text-gray-500" data-mock="true">5 ore fa</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center py-3 border-b border-gray-100 last:border-b-0">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-plus text-success text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-800" data-mock="true">Nuovo PC aggiunto per Cliente ABC</p>
+                                    <p class="text-xs text-gray-500" data-mock="true">1 giorno fa</p>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md">
+                        <div class="p-6 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">Avvisi Garanzia</h3>
+                        </div>
+                        <div class="p-6">
+                            <!-- @MAP: warrantyAlerts.map(alert => ( -->
+                            <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-exclamation text-error text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800" data-mock="true">PC-LENOVO-023</p>
+                                        <p class="text-xs text-gray-500" data-mock="true">Scade tra 7 giorni</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">Urgente</span>
+                            </div>
+                            <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-clock text-warning text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800" data-mock="true">PC-ASUS-112</p>
+                                        <p class="text-xs text-gray-500" data-mock="true">Scade tra 30 giorni</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Attenzione</span>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: Dashboard Tab -->
+
+            <!-- @COMPONENT: Computers Management Tab -->
+            <div id="computers-tab" class="tab-content hidden p-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Gestione PC</h2>
+                    <p class="text-gray-600">Visualizza e gestisci tutti i computer aziendali</p>
+                </div>
+
+                <!-- Search and Filters -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Cerca PC</label>
+                            <div class="relative">
+                                <input type="text" placeholder="Seriale, modello, assegnato..." 
+                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option value="">Tutti i clienti</option>
+                                <option value="client1" data-mock="true">Cliente ABC S.r.l.</option>
+                                <option value="client2" data-mock="true">XYZ Company</option>
+                                <option value="client3" data-mock="true">Tech Solutions</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Stato</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option value="">Tutti gli stati</option>
+                                <option value="active">Attivo</option>
+                                <option value="maintenance">In Assistenza</option>
+                                <option value="dismissed">Dismesso</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option value="">Tutte le marche</option>
+                                <option value="dell">Dell</option>
+                                <option value="hp">HP</option>
+                                <option value="lenovo">Lenovo</option>
+                                <option value="asus">Asus</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PC Table -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PC Info</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assegnato a</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stato</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Garanzia</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <!-- @MAP: computers.map(pc => ( -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900" data-bind="pc.serial" data-mock="true">PC-DELL-001</div>
+                                            <div class="text-sm text-gray-500" data-bind="pc.model" data-mock="true">Dell OptiPlex 7090</div>
+                                            <div class="text-xs text-gray-400" data-bind="pc.type" data-mock="true">Desktop</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" data-bind="pc.client" data-mock="true">Cliente ABC S.r.l.</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" data-bind="pc.assignedTo" data-mock="true">Mario Rossi</div>
+                                        <div class="text-xs text-gray-500" data-bind="pc.department" data-mock="true">IT Department</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            Attivo
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" data-bind="pc.warrantyExpiry" data-mock="true">15/03/2025</div>
+                                        <div class="text-xs text-green-600">8 mesi rimanenti</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button class="text-primary hover:text-blue-800 mr-3" data-action="view-pc">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-warning hover:text-yellow-800 mr-3" data-action="edit-pc">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-gray-500 hover:text-gray-700" data-action="history-pc">
+                                            <i class="fas fa-history"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900" data-mock="true">PC-HP-045</div>
+                                            <div class="text-sm text-gray-500" data-mock="true">HP EliteBook 840</div>
+                                            <div class="text-xs text-gray-400" data-mock="true">Laptop</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" data-mock="true">XYZ Company</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" data-mock="true">Laura Bianchi</div>
+                                        <div class="text-xs text-gray-500" data-mock="true">Sales Team</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            In Assistenza
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" data-mock="true">22/08/2024</div>
+                                        <div class="text-xs text-red-600">Scaduta</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button class="text-primary hover:text-blue-800 mr-3" data-action="view-pc">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-warning hover:text-yellow-800 mr-3" data-action="edit-pc">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-gray-500 hover:text-gray-700" data-action="history-pc">
+                                            <i class="fas fa-history"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <!-- @END_MAP )) -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="bg-white px-4 py-3 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-700">
+                                Mostrando <span class="font-medium">1</span> a <span class="font-medium">10</span> di <span class="font-medium">247</span> risultati
+                            </div>
+                            <div class="flex space-x-1">
+                                <button class="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50">Precedente</button>
+                                <button class="px-3 py-2 text-sm text-white bg-primary border border-primary rounded">1</button>
+                                <button class="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                                <button class="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                                <button class="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50">Successivo</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: Computers Management Tab -->
+
+            <!-- @COMPONENT: Add PC Tab -->
+            <div id="add-pc-tab" class="tab-content hidden p-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Aggiungi Nuovo PC</h2>
+                    <p class="text-gray-600">Inserisci le informazioni del nuovo computer da aggiungere al sistema</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-8">
+                    <form class="space-y-6">
+                        <!-- Basic Information -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-800 mb-4">Informazioni Base</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Numero Seriale*</label>
+                                    <input type="text" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                           placeholder="Inserisci numero seriale">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Marca*</label>
+                                    <select required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="">Seleziona marca</option>
+                                        <option value="dell">Dell</option>
+                                        <option value="hp">HP</option>
+                                        <option value="lenovo">Lenovo</option>
+                                        <option value="asus">Asus</option>
+                                        <option value="acer">Acer</option>
+                                        <option value="apple">Apple</option>
+                                        <option value="other">Altro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Modello*</label>
+                                    <input type="text" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                           placeholder="Es. OptiPlex 7090, EliteBook 840">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipologia*</label>
+                                    <select required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="">Seleziona tipologia</option>
+                                        <option value="desktop">Desktop</option>
+                                        <option value="laptop">Laptop</option>
+                                        <option value="workstation">Workstation</option>
+                                        <option value="server">Server</option>
+                                        <option value="tablet">Tablet</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Client and Assignment -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-800 mb-4">Assegnazione</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente*</label>
+                                    <select required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="">Seleziona cliente</option>
+                                        <option value="client1" data-mock="true">Cliente ABC S.r.l.</option>
+                                        <option value="client2" data-mock="true">XYZ Company</option>
+                                        <option value="client3" data-mock="true">Tech Solutions Ltd.</option>
+                                        <option value="client4" data-mock="true">Innovate Corp</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Assegnato a</label>
+                                    <input type="text" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                           placeholder="Nome utente o reparto">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Warranty and Additional Info -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-800 mb-4">Garanzia e Note</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Data Scadenza Garanzia</label>
+                                    <input type="date" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Stato Iniziale</label>
+                                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="active">Attivo</option>
+                                        <option value="preparation">In Preparazione</option>
+                                        <option value="storage">In Magazzino</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Note</label>
+                                <textarea rows="4" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                          placeholder="Inserisci eventuali note o specifiche tecniche..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex justify-end space-x-4 pt-6">
+                            <button type="button" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                                Annulla
+                            </button>
+                            <button type="submit" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-save mr-2"></i>
+                                Salva PC
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: Add PC Tab -->
+
+            <!-- @COMPONENT: Clients Tab -->
+            <div id="clients-tab" class="tab-content hidden p-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Clienti</h2>
+                    <p class="text-gray-600">Overview completa dei PC gestiti per ogni cliente</p>
+                </div>
+
+                <!-- Client Cards -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- @MAP: clients.map(client => ( -->
+                    <div class="bg-white rounded-lg shadow-md">
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800" data-bind="client.name" data-mock="true">Cliente ABC S.r.l.</h3>
+                                <button class="text-primary hover:text-blue-700">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1" data-bind="client.type" data-mock="true">Azienda di consulenza</p>
+                        </div>
+                        <div class="p-6">
+                            <!-- PC Stats -->
+                            <div class="grid grid-cols-3 gap-4 mb-6">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-primary" data-bind="client.totalPCs" data-mock="true">45</div>
+                                    <div class="text-xs text-gray-500">Totale PC</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-success" data-bind="client.activePCs" data-mock="true">42</div>
+                                    <div class="text-xs text-gray-500">Attivi</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-warning" data-bind="client.maintenancePCs" data-mock="true">3</div>
+                                    <div class="text-xs text-gray-500">Assistenza</div>
+                                </div>
+                            </div>
+
+                            <!-- Status Distribution -->
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Desktop</span>
+                                    <span class="text-sm font-medium" data-mock="true">28 PC</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 62%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center pt-2">
+                                    <span class="text-sm text-gray-600">Laptop</span>
+                                    <span class="text-sm font-medium" data-mock="true">17 PC</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full" style="width: 38%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="flex space-x-2 mt-6 pt-4 border-t border-gray-100">
+                                <button class="flex-1 px-3 py-2 text-sm bg-primary text-white rounded hover:bg-blue-700">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    Dettagli
+                                </button>
+                                <button class="flex-1 px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
+                                    <i class="fas fa-download mr-1"></i>
+                                    Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md">
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800" data-mock="true">XYZ Company</h3>
+                                <button class="text-primary hover:text-blue-700">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1" data-mock="true">Società di servizi finanziari</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-3 gap-4 mb-6">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-primary" data-mock="true">67</div>
+                                    <div class="text-xs text-gray-500">Totale PC</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-success" data-mock="true">61</div>
+                                    <div class="text-xs text-gray-500">Attivi</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-warning" data-mock="true">6</div>
+                                    <div class="text-xs text-gray-500">Assistenza</div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Desktop</span>
+                                    <span class="text-sm font-medium" data-mock="true">35 PC</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 52%"></div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center pt-2">
+                                    <span class="text-sm text-gray-600">Laptop</span>
+                                    <span class="text-sm font-medium" data-mock="true">32 PC</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full" style="width: 48%"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex space-x-2 mt-6 pt-4 border-t border-gray-100">
+                                <button class="flex-1 px-3 py-2 text-sm bg-primary text-white rounded hover:bg-blue-700">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    Dettagli
+                                </button>
+                                <button class="flex-1 px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
+                                    <i class="fas fa-download mr-1"></i>
+                                    Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+            <!-- @END_COMPONENT: Clients Tab -->
+
+            <!-- @COMPONENT: Reports Tab -->
+            <div id="reports-tab" class="tab-content hidden p-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Report e Analisi</h2>
+                    <p class="text-gray-600">Genera report dettagliati per i tuoi clienti e analisi del parco macchine</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Quick Reports -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Report Rapidi</h3>
+                            <div class="space-y-3">
+                                <button class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-file-pdf text-red-500 mr-3"></i>
+                                        <span class="text-sm font-medium">Inventario Completo</span>
+                                    </div>
+                                    <i class="fas fa-download text-gray-400"></i>
+                                </button>
+                                <button class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-file-excel text-green-500 mr-3"></i>
+                                        <span class="text-sm font-medium">Scadenze Garanzie</span>
+                                    </div>
+                                    <i class="fas fa-download text-gray-400"></i>
+                                </button>
+                                <button class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-file-chart-line text-blue-500 mr-3"></i>
+                                        <span class="text-sm font-medium">Report Mensile</span>
+                                    </div>
+                                    <i class="fas fa-download text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Report Generator -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Genera Report Personalizzato</h3>
+                            <form class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo Report</label>
+                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                            <option value="inventory">Inventario</option>
+                                            <option value="warranty">Garanzie</option>
+                                            <option value="maintenance">Manutenzioni</option>
+                                            <option value="assignment">Assegnazioni</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
+                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                            <option value="">Tutti i clienti</option>
+                                            <option value="client1" data-mock="true">Cliente ABC S.r.l.</option>
+                                            <option value="client2" data-mock="true">XYZ Company</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Data Inizio</label>
+                                        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Data Fine</label>
+                                        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Formato</label>
+                                    <div class="flex space-x-4">
+                                        <label class="flex items-center">
+                                            <input type="radio" name="format" value="pdf" class="text-primary" checked>
+                                            <span class="ml-2 text-sm">PDF</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" name="format" value="excel" class="text-primary">
+                                            <span class="ml-2 text-sm">Excel</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" name="format" value="csv" class="text-primary">
+                                            <span class="ml-2 text-sm">CSV</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700">
+                                    <i class="fas fa-file-download mr-2"></i>
+                                    Genera Report
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: Reports Tab -->
+        </main>
+        <!-- @END_COMPONENT: Main Content Area -->
+    </div>
+
+    <!-- @COMPONENT: PC Detail Modal -->
+    <div id="pc-detail-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-semibold text-gray-800">Dettagli PC - <span data-bind="selectedPC.serial" data-mock="true">PC-DELL-001</span></h3>
+                        <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- PC Information -->
+                        <div>
+                            <h4 class="text-lg font-medium text-gray-800 mb-4">Informazioni Hardware</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Seriale:</span>
+                                    <span class="font-medium" data-bind="selectedPC.serial" data-mock="true">PC-DELL-001</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Marca:</span>
+                                    <span class="font-medium" data-bind="selectedPC.brand" data-mock="true">Dell</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Modello:</span>
+                                    <span class="font-medium" data-bind="selectedPC.model" data-mock="true">OptiPlex 7090</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Tipologia:</span>
+                                    <span class="font-medium" data-bind="selectedPC.type" data-mock="true">Desktop</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Stato:</span>
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Attivo
+                                    </span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Scadenza Garanzia:</span>
+                                    <span class="font-medium text-green-600" data-bind="selectedPC.warrantyExpiry" data-mock="true">15/03/2025</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Assignment History -->
+                        <div>
+                            <h4 class="text-lg font-medium text-gray-800 mb-4">Storico Assegnazioni</h4>
+                            <div class="space-y-4">
+                                <!-- @MAP: pcHistory.map(entry => ( -->
+                                <div class="border-l-4 border-primary pl-4 py-2">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <p class="font-medium text-gray-800" data-bind="entry.event" data-mock="true">Assegnato a Mario Rossi</p>
+                                            <p class="text-sm text-gray-600" data-bind="entry.department" data-mock="true">IT Department - Cliente ABC S.r.l.</p>
+                                        </div>
+                                        <span class="text-xs text-gray-500" data-bind="entry.date" data-mock="true">15/01/2024</span>
+                                    </div>
+                                </div>
+                                <div class="border-l-4 border-yellow-400 pl-4 py-2">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <p class="font-medium text-gray-800" data-mock="true">Aggiornamento note: Installato software aggiuntivo</p>
+                                            <p class="text-sm text-gray-600" data-mock="true">Configurazione completata</p>
+                                        </div>
+                                        <span class="text-xs text-gray-500" data-mock="true">20/01/2024</span>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Notes -->
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <h4 class="text-lg font-medium text-gray-800 mb-4">Note Correnti</h4>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-gray-700" data-bind="selectedPC.notes" data-mock="true">
+                                PC principale dell'ufficio IT. Configurazione standard aziendale con software di sviluppo.
+                                Ultimo aggiornamento sistema: 10/01/2024
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end space-x-4 mt-8">
+                        <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-print mr-2"></i>
+                            Stampa
+                        </button>
+                        <button class="px-4 py-2 bg-warning text-white rounded-lg hover:bg-yellow-600">
+                            <i class="fas fa-edit mr-2"></i>
+                            Modifica
+                        </button>
+                        <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-history mr-2"></i>
+                            Storico Completo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: PC Detail Modal -->
+
+    <script>
+        // Navigation functionality
+        (function() {
+            const navItems = document.querySelectorAll('.nav-item');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetTab = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all nav items
+                    navItems.forEach(nav => {
+                        nav.classList.remove('text-primary', 'bg-blue-50', 'border-r-3', 'border-primary');
+                        nav.classList.add('text-gray-600');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.remove('text-gray-600');
+                    this.classList.add('text-primary', 'bg-blue-50', 'border-r-3', 'border-primary');
+                    
+                    // Hide all tab contents
+                    tabContents.forEach(tab => {
+                        tab.classList.add('hidden');
+                    });
+                    
+                    // Show target tab
+                    document.getElementById(targetTab + '-tab').classList.remove('hidden');
+                });
+            });
+
+            // Modal functionality
+            const pcDetailModal = document.getElementById('pc-detail-modal');
+            const closeModalBtn = document.getElementById('close-modal');
+            
+            // PC view buttons
+            document.querySelectorAll('[data-action="view-pc"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    pcDetailModal.classList.remove('hidden');
+                    // TODO: Populate modal with actual PC data
+                });
+            });
+
+            // Close modal
+            closeModalBtn.addEventListener('click', function() {
+                pcDetailModal.classList.add('hidden');
+            });
+
+            // Close modal on backdrop click
+            pcDetailModal.addEventListener('click', function(e) {
+                if (e.target === pcDetailModal) {
+                    pcDetailModal.classList.add('hidden');
+                }
+            });
+
+            // Form validation and submission
+            const addPcForm = document.querySelector('#add-pc-tab form');
+            if (addPcForm) {
+                addPcForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // TODO: Implement form validation and submission logic
+                    alert('PC aggiunto con successo! (Mock functionality)');
+                });
+            }
+
+            // Search and filter functionality
+            const searchInputs = document.querySelectorAll('input[type="text"]');
+            searchInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    // TODO: Implement real-time search functionality
+                });
+            });
+
+            // Table sorting (mock implementation)
+            document.querySelectorAll('th').forEach(header => {
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', function() {
+                    // TODO: Implement table sorting functionality
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
