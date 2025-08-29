@@ -44,6 +44,15 @@ export const computerActivities = pgTable("computer_activities", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// --- NUOVA TABELLA USERS ---
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  hashedPassword: text("hashed_password").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+// -------------------------
+
 export const clientsRelations = relations(clients, ({ many }) => ({
   computers: many(computers),
 }));
@@ -71,6 +80,12 @@ export const computerActivitiesRelations = relations(computerActivities, ({ one 
   }),
 }));
 
+// --- NUOVA RELAZIONE USERS ---
+export const usersRelations = relations(users, ({ many }) => ({
+  // qui in futuro potrai definire relazioni, per ora la lasciamo vuota
+}));
+// ---------------------------
+
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   createdAt: true,
@@ -92,6 +107,13 @@ export const insertComputerActivitySchema = createInsertSchema(computerActivitie
   createdAt: true,
 });
 
+// --- NUOVO ZOD SCHEMA PER USERS ---
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+// ----------------------------------
+
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Computer = typeof computers.$inferSelect;
@@ -100,6 +122,11 @@ export type ComputerHistory = typeof computerHistory.$inferSelect;
 export type InsertComputerHistory = z.infer<typeof insertComputerHistorySchema>;
 export type ComputerActivity = typeof computerActivities.$inferSelect;
 export type InsertComputerActivity = z.infer<typeof insertComputerActivitySchema>;
+
+// --- NUOVI TIPI PER USER ---
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+// ---------------------------
 
 export type ComputerWithClient = Computer & {
   client: Client;
