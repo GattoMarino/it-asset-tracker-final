@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
-import { insertClientSchema, insertComputerSchema, insertComputerActivitySchema } from "@shared/schema";
+import { insertClientSchema, insertComputerSchema, insertComputerActivitySchema } from "../shared/schema.js";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -106,7 +106,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const updates = insertComputerSchema.partial().parse(req.body);
       
-      // Get current computer data to track assignment changes
       const currentComputer = await storage.getComputer(id);
       if (!currentComputer) {
         return res.status(404).json({ message: "Computer not found" });
@@ -114,7 +113,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const computer = await storage.updateComputer(id, updates);
       
-      // Track assignment changes ONLY (not other modifications)
       if (updates.assignedTo !== undefined && updates.assignedTo !== currentComputer.assignedTo) {
         if (updates.assignedTo && updates.assignedTo !== currentComputer.assignedTo) {
           await storage.addComputerHistory({

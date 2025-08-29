@@ -13,7 +13,7 @@ import {
   type InsertComputerActivity,
   type ComputerWithClient,
   type ComputerWithHistory
-} from "@shared/schema";
+} from "../shared/schema.js";
 import { db } from "./db.js";
 import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
 
@@ -262,7 +262,6 @@ export class DatabaseStorage implements IStorage {
     const activePCs = await db.select({ count: sql<number>`count(*)` }).from(computers).where(eq(computers.status, 'active'));
     const maintenancePCs = await db.select({ count: sql<number>`count(*)` }).from(computers).where(eq(computers.status, 'maintenance'));
     
-    // Warranty expiring in next 30 days
     const expiringSoon = await db
       .select({ count: sql<number>`count(*)` })
       .from(computers)
