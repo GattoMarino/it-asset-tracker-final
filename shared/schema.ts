@@ -51,7 +51,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// --- NUOVA TABELLA PER LE SESSIONI ---
+// --- TABELLA PER LE SESSIONI ---
 export const userSessions = pgTable("user_sessions", {
   sid: varchar("sid").primaryKey(),
   sess: json("sess").notNull(),
@@ -121,4 +121,18 @@ export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Computer = typeof computers.$inferSelect;
 export type InsertComputer = z.infer<typeof insertComputerSchema>;
 export type ComputerHistory = typeof computerHistory.$inferSelect;
-export type InsertComputerHistory = z.infer<typeof insertComputerHistory
+export type InsertComputerHistory = z.infer<typeof insertComputerHistorySchema>; // <-- RIGA CORRETTA
+export type ComputerActivity = typeof computerActivities.$inferSelect;
+export type InsertComputerActivity = z.infer<typeof insertComputerActivitySchema>;
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type ComputerWithClient = Computer & {
+  client: Client;
+};
+
+export type ComputerWithHistory = Computer & {
+  client: Client;
+  history: ComputerHistory[];
+  activities: ComputerActivity[];
+};
