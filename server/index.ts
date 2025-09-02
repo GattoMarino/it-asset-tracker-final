@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
-import { serveStatic, log } from "./utils.js";
+import { log } from "./utils.js";
 
 const app = express();
 app.use(express.json());
@@ -51,9 +51,6 @@ app.use((req, res, next) => {
     // Use dynamic import for development-only dependencies
     const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
-  } else {
-    // In production, use only the static serving utility
-    serveStatic(app);
   }
 
   const port = parseInt(process.env.PORT || '5000', 10);
