@@ -1,10 +1,37 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes.js";
 import { log } from "./utils.js";
+import { pool } from "./db.js"; // Importa il pool del database
+
+if (!process.env.SESSION_SECRET) {
+  throw new Error("La variabile d'ambiente SESSION_SECRET deve essere impostata.");
+}
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// --- NUOVO: Configurazione di express-session ---
+const PgStore = connectPgSimple(session);
+app.use(
+  session({
+    store: new PgStore({
+      pool: pool, // Usa il pool di connessione esistente
+      tableName: "user_sessions", // Nome della tabella per le sessioni
+    }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // true in produzione (HTTPS)
+      maxAge: 30 * 24 * 60 * 60 * 1000, // Scadenza: 30 giorni
+    },
+  }),
+);
+// --- FINE BLOCCO NUOVO ---
+
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -44,7 +71,8 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    // Non rilanciare l'errore per evitare crash, specialmente in un ambiente serverless
+    // throw err;
   });
 
   if (process.env.NODE_ENV === "development") {
@@ -53,8 +81,11 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   }
 
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen(port, "localhost", () => {
+  const port = parseInt(process.env.PORT || "5000", 10);
+  
+  // In un ambiente serverless, non c'è bisogno di specificare 'localhost'
+  // Vercel gestirà il binding all'host corretto.
+  server.listen(port, () => {
     log(`serving on port ${port}`);
   });
 })();
