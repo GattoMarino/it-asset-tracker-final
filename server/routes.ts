@@ -7,12 +7,10 @@ import bcrypt from "bcrypt";
 
 // Middleware per controllare se l'utente è autenticato
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  // @ts-ignore - Stiamo accedendo a una proprietà custom sulla sessione
+  // @ts-ignore
   if (req.session.userId) {
-    return next(); // L'utente è loggato, procedi
+    return next();
   }
-  // L'utente non è loggato, blocca la richiesta
-  // CORREZIONE: Aggiunto "return" per terminare l'esecuzione qui
   return res.status(401).json({ message: "Non autorizzato. Effettua il login." });
 };
 
@@ -53,9 +51,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Credenziali non valide" });
       }
+      
       // @ts-ignore
       req.session.userId = user.id;
-      res.status(200).json({ id: user.id, email: user.email });
+
+      // ---- MODIFICA CRUCIALE ----
+      // Attendiamo che la sessione sia salvata prima di rispondere.
+      req.session.save((err) => {
+        if (err) {
+          console.error("Errore nel salvataggio della sessione:", err);
+          return res.status(500).json({ message: "Errore durante il login" });
+        }
+        res.status(200).json({ id: user.id, email: user.email });
+      });
+      // --------------------------
+
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Errore durante il login" });
@@ -81,6 +91,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     res.json({ id: user.id, email: user.email });
   });
+
+  // --- IL RESTO DEL FILE RIMANE INVARIATO ---
 
   // --- ROTTE CLIENTI (PROTETTE) ---
   app.get("/api/clients", isAuthenticated, async (req, res) => {
