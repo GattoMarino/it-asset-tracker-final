@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { insertComputerSchema, type ComputerWithClient } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-// import { toast } from "@/components/ui/use-toast"; // <-- RIMOSSO
+import { toast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -51,7 +51,6 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
-
 const editComputerSchema = insertComputerSchema.partial().extend({
   warrantyExpiry: z.date().optional().nullable(),
 });
@@ -88,7 +87,10 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      console.log("PC aggiornato con successo!"); // <-- SOSTITUITO IL TOAST
+      toast({
+        title: "Successo!",
+        description: "Il computer è stato aggiornato correttamente.",
+      });
       onClose();
     },
   });
@@ -100,12 +102,15 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      console.log("PC eliminato con successo!"); // <-- SOSTITUITO IL TOAST
+      toast({
+        title: "Eliminato!",
+        description: "Il computer è stato eliminato.",
+        variant: "destructive",
+      });
       onClose();
       setDeleteAlertOpen(false);
     },
   });
-
 
   const onSubmit = (values: EditComputerSchema) => {
     updateMutation.mutate(values);
@@ -129,11 +134,12 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Stato</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    {/* CORREZIONE: Usato 'value' per un controllo completo */}
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleziona uno stato" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="active">Attivo</SelectItem>
@@ -163,8 +169,9 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                               !field.value && "text-muted-foreground"
                             )}
                           >
+                            {/* CORREZIONE: Aggiunto controllo per valore nullo */}
                             {field.value ? (
-                              format(field.value, "PPP")
+                              format(new Date(field.value), "PPP")
                             ) : (
                               <span>Scegli una data</span>
                             )}
@@ -175,7 +182,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value || undefined}
+                          selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
                           disabled={(date) => date < new Date("1900-01-01")}
                           initialFocus
