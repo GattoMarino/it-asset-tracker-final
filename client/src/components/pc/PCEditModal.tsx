@@ -51,6 +51,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
+
 const editComputerSchema = insertComputerSchema.partial().extend({
   warrantyExpiry: z.date().optional().nullable(),
 });
@@ -112,6 +113,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
   });
 
+
   const onSubmit = (values: EditComputerSchema) => {
     updateMutation.mutate(values);
   };
@@ -134,12 +136,11 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Stato</FormLabel>
-                    {/* CORREZIONE: Usato 'value' per un controllo completo */}
                     <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleziona uno stato" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="active">Attivo</SelectItem>
@@ -169,7 +170,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {/* CORREZIONE: Aggiunto controllo per valore nullo */}
                             {field.value ? (
                               format(new Date(field.value), "PPP")
                             ) : (
