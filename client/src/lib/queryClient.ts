@@ -1,5 +1,4 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { toast } from "@/components/ui/use-toast"; // Importiamo il toast per gli errori
 
 // Le tue funzioni sono perfette, le manteniamo
 async function throwIfResNotOk(res: Response) {
@@ -39,16 +38,13 @@ export const getQueryFn: <T>(options: {
       return null;
     }
     
-    // throwIfResNotOk è già in apiRequest, ma lo lasciamo per la gestione del 401
     await throwIfResNotOk(res);
     return await res.json();
   };
 
-// --- MODIFICA PRINCIPALE QUI SOTTO ---
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // La tua configurazione per le query è già ottima
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
@@ -56,13 +52,9 @@ export const queryClient = new QueryClient({
       retry: false,
     },
     mutations: {
-      // Aggiungiamo questa sezione per gestire gli errori di tutte le mutazioni
+      // MODIFICA: Usiamo console.error invece del toast
       onError: (error) => {
-        toast({
-          title: "Errore",
-          description: error.message,
-          variant: "destructive",
-        });
+        console.error("Errore durante la modifica:", error.message);
       },
       retry: false,
     },
