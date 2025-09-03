@@ -11,7 +11,7 @@ import Clients from "@/pages/clients";
 import AddPC from "@/pages/add-pc";
 import Reports from "@/pages/reports";
 import NotFound from "@/pages/not-found";
-import { Login } from "./pages/Login"; // 1. Importa la nuova pagina di Login
+import { Login } from "@/pages/Login"; // 1. CORREZIONE: Usa l'alias corretto "@/pages/Login"
 
 // Componenti di layout
 import Sidebar from "@/components/layout/sidebar";
