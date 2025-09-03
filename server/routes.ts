@@ -55,8 +55,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // @ts-ignore
       req.session.userId = user.id;
 
-      // ---- MODIFICA CRUCIALE ----
-      // Attendiamo che la sessione sia salvata prima di rispondere.
       req.session.save((err) => {
         if (err) {
           console.error("Errore nel salvataggio della sessione:", err);
@@ -64,7 +62,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         res.status(200).json({ id: user.id, email: user.email });
       });
-      // --------------------------
 
     } catch (error) {
       console.error(error);
@@ -91,8 +88,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     res.json({ id: user.id, email: user.email });
   });
-
-  // --- IL RESTO DEL FILE RIMANE INVARIATO ---
 
   // --- ROTTE CLIENTI (PROTETTE) ---
   app.get("/api/clients", isAuthenticated, async (req, res) => {
@@ -225,81 +220,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(computer);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid update data", errors: error.errors });
-      } else {
-        res.status(500).json({ message: "Failed to update computer" });
-      }
-    }
-  });
-
-  app.get("/api/computers/:id/history", isAuthenticated, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const history = await storage.getComputerHistory(id);
-      res.json(history);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch computer history" });
-    }
-  });
-
-  // --- ROTTE ATTIVITÀ COMPUTER (PROTETTE) ---
-  app.post("/api/computers/:id/activities", isAuthenticated, async (req, res) => {
-    try {
-      const computerId = parseInt(req.params.id);
-      const activityData = insertComputerActivitySchema.parse({
-        ...req.body,
-        computerId
-      });
-      
-      const activity = await storage.addComputerActivity(activityData);
-      res.status(201).json(activity);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid activity data", errors: error.errors });
-      } else {
-        res.status(500).json({ message: "Failed to create activity" });
-      }
-    }
-  });
-
-  app.get("/api/computers/:id/activities", isAuthenticated, async (req, res) => {
-    try {
-      const computerId = parseInt(req.params.id);
-      const activities = await storage.getComputerActivities(computerId);
-      res.json(activities);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch activities" });
-    }
-  });
-
-  // --- ROTTE DASHBOARD (PROTETTE) ---
-  app.get("/api/dashboard/stats", isAuthenticated, async (req, res) => {
-    try {
-      const stats = await storage.getDashboardStats();
-      res.json(stats);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch dashboard stats" });
-    }
-  });
-
-  app.get("/api/dashboard/recent-activity", isAuthenticated, async (req, res) => {
-    try {
-      const activity = await storage.getRecentActivity();
-      res.json(activity);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch recent activity" });
-    }
-  });
-
-  app.get("/api/dashboard/warranty-alerts", isAuthenticated, async (req, res) => {
-    try {
-      const alerts = await storage.getWarrantyAlerts();
-      res.json(alerts);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch warranty alerts" });
-    }
-  });
-
-  const httpServer = createServer(app);
-  return httpServer;
-}
+        res.status(400
