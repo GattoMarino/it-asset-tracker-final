@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { insertComputerSchema, type ComputerWithClient } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { toast } from "@/components/ui/use-toast";
+// import { toast } from "@/components/ui/use-toast"; // <-- RIMOSSO
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Form,
@@ -53,7 +52,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 
 
-// Aggiorniamo lo schema per includere i nuovi campi
 const editComputerSchema = insertComputerSchema.partial().extend({
   warrantyExpiry: z.date().optional().nullable(),
 });
@@ -73,7 +71,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     resolver: zodResolver(editComputerSchema),
   });
 
-  // Resetta il form ogni volta che un PC viene selezionato
   useEffect(() => {
     if (pc) {
       form.reset({
@@ -91,10 +88,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      toast({
-        title: "Successo!",
-        description: "Il computer è stato aggiornato correttamente.",
-      });
+      console.log("PC aggiornato con successo!"); // <-- SOSTITUITO IL TOAST
       onClose();
     },
   });
@@ -106,11 +100,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      toast({
-        title: "Eliminato!",
-        description: "Il computer è stato eliminato.",
-        variant: "destructive",
-      });
+      console.log("PC eliminato con successo!"); // <-- SOSTITUITO IL TOAST
       onClose();
       setDeleteAlertOpen(false);
     },
@@ -133,7 +123,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {/* Campo Stato */}
               <FormField
                 control={form.control}
                 name="status"
@@ -158,7 +147,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                   </FormItem>
                 )}
               />
-              {/* Campo Scadenza Garanzia */}
               <FormField
                 control={form.control}
                 name="warrantyExpiry"
@@ -227,7 +215,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
               )}
             />
             <DialogFooter className="flex justify-between w-full">
-              {/* Tasto Elimina con Alert di Conferma */}
               <AlertDialog open={isDeleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="destructive">
