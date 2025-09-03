@@ -12,6 +12,12 @@ if (!process.env.SESSION_SECRET) {
 }
 
 const app = express();
+
+// ---- MODIFICA CRUCIALE ----
+// Questa riga dice a Express di fidarsi del proxy di Vercel
+app.set('trust proxy', 1);
+// --------------------------
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -67,7 +73,6 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
-    // La riga 'throw err;' è stata rimossa per evitare l'errore HEADERS_SENT
   });
 
   if (process.env.NODE_ENV === "development") {
