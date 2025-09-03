@@ -3,15 +3,21 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+
+// Import delle pagine
 import Dashboard from "@/pages/dashboard";
 import Computers from "@/pages/computers";
 import Clients from "@/pages/clients";
 import AddPC from "@/pages/add-pc";
 import Reports from "@/pages/reports";
-import Sidebar from "@/components/layout/sidebar";
 import NotFound from "@/pages/not-found";
+import { Login } from "./pages/Login"; // 1. Importa la nuova pagina di Login
 
-function Router() {
+// Componenti di layout
+import Sidebar from "@/components/layout/sidebar";
+
+// 2. Questo componente gestisce il layout "privato", con la sidebar
+function PrivateLayout() {
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -27,6 +33,21 @@ function Router() {
         </Switch>
       </main>
     </div>
+  );
+}
+
+// 3. Il Router principale ora decide quale layout mostrare
+function Router() {
+  return (
+    <Switch>
+      {/* Rotta pubblica per il login */}
+      <Route path="/login" component={Login} />
+
+      {/* Tutte le altre rotte caricheranno il layout privato */}
+      <Route>
+        <PrivateLayout />
+      </Route>
+    </Switch>
   );
 }
 
