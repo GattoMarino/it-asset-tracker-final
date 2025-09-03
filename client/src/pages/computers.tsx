@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query"; // Aggiungi useQueryClient
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import {
 import { Search } from "lucide-react";
 import PCTable from "@/components/pc/pc-table";
 import PCDetailModal from "@/components/pc/pc-detail-modal";
+import PCEditModal from "@/components/pc/PCEditModal"; // 1. Importa il nuovo componente
 import type { ComputerWithClient } from "@shared/schema";
 
 export default function Computers() {
@@ -21,7 +22,11 @@ export default function Computers() {
   const [selectedClient, setSelectedClient] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
+  
   const [selectedPC, setSelectedPC] = useState<ComputerWithClient | null>(null);
+  const [editingPC, setEditingPC] = useState<ComputerWithClient | null>(null); // 2. Aggiungi stato per il PC in modifica
+
+  const queryClient = useQueryClient(); // Inizializza il queryClient
 
   const { data: clients } = useQuery({
     queryKey: ["/api/clients"],
@@ -36,7 +41,9 @@ export default function Computers() {
       if (selectedStatus && selectedStatus !== "all") params.append("status", selectedStatus);
       if (selectedBrand && selectedBrand !== "all") params.append("brand", selectedBrand);
       
-      const response = await fetch(`/api/computers?${params.toString()}`);
+      const response = await fetch(`/api/computers?${params.toString()}`, {
+        credentials: "include", // Assicuriamoci di inviare i cookie
+      });
       if (!response.ok) throw new Error("Failed to fetch computers");
       return response.json();
     },
@@ -44,6 +51,11 @@ export default function Computers() {
 
   const handleViewPC = (pc: ComputerWithClient) => {
     setSelectedPC(pc);
+  };
+
+  // 3. Aggiungi la funzione per aprire il modal di modifica
+  const handleEditPC = (pc: ComputerWithClient) => {
+    setEditingPC(pc);
   };
 
   return (
@@ -132,6 +144,7 @@ export default function Computers() {
         computers={computers || []} 
         isLoading={isLoading}
         onViewPC={handleViewPC}
+        onEditPC={handleEditPC} // 4. Passa la nuova funzione alla tabella
       />
 
       {/* PC Detail Modal */}
@@ -140,6 +153,15 @@ export default function Computers() {
           pc={selectedPC} 
           isOpen={!!selectedPC}
           onClose={() => setSelectedPC(null)}
+        />
+      )}
+
+      {/* 5. Renderizza il nuovo modal di modifica */}
+      {editingPC && (
+        <PCEditModal
+          pc={editingPC}
+          isOpen={!!editingPC}
+          onClose={() => setEditingPC(null)}
         />
       )}
     </div>

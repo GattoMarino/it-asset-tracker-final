@@ -12,7 +12,7 @@ import {
 import { Eye, Edit, History } from "lucide-react";
 import type { ComputerWithClient } from "@shared/schema";
 
-// 1. Aggiungiamo onEditPC alle props che il componente accetta
+// 1. Aggiungi onEditPC qui
 interface PCTableProps {
   computers: ComputerWithClient[];
   isLoading: boolean;
@@ -20,7 +20,7 @@ interface PCTableProps {
   onEditPC: (pc: ComputerWithClient) => void;
 }
 
-// 2. Riceviamo onEditPC qui
+// 2. Aggiungi onEditPC qui
 export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PCTableProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -134,7 +134,7 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                     >
                       <Eye size={16} />
                     </Button>
-                    {/* 3. Aggiungiamo l'evento onClick al pulsante Modifica */}
+                    {/* 3. Aggiungi onClick qui */}
                     <Button
                       variant="ghost"
                       size="sm"
