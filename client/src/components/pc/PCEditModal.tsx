@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { insertComputerSchema, type ComputerWithClient } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-// import { toast } from "@/components/ui/use-toast"; // <-- RIMOSSO DEFINITIVAMENTE
+import { toast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger, // <-- 1. AGGIUNGI QUESTO IMPORT MANCANTE
 } from "@/components/ui/alert-dialog";
 import {
   Form,
@@ -88,7 +89,10 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      console.log("PC aggiornato con successo!"); // <-- SOSTITUITO IL TOAST
+      toast({
+        title: "Successo!",
+        description: "Il computer è stato aggiornato correttamente.",
+      });
       onClose();
     },
   });
@@ -100,7 +104,11 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      console.log("PC eliminato con successo!"); // <-- SOSTITUITO IL TOAST
+      toast({
+        title: "Eliminato!",
+        description: "Il computer è stato eliminato.",
+        variant: "destructive",
+      });
       onClose();
       setDeleteAlertOpen(false);
     },
