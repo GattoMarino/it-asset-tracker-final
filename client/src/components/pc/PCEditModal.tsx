@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { insertComputerSchema, type ComputerWithClient } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { toast } from "@/components/ui/use-toast";
+// import { toast } from "@/components/ui/use-toast"; // <-- RIMOSSO
 
 import {
   Dialog,
@@ -29,8 +29,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-// Usiamo lo schema di inserimento e lo rendiamo parziale, 
-// così possiamo aggiornare anche solo alcuni campi.
 const editComputerSchema = insertComputerSchema.partial();
 type EditComputerSchema = z.infer<typeof editComputerSchema>;
 
@@ -54,7 +52,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
   });
 
-  // Resetta il form ogni volta che viene selezionato un nuovo PC
   useEffect(() => {
     if (pc) {
       form.reset({
@@ -74,13 +71,9 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
       return res.json();
     },
     onSuccess: () => {
-      // Invalida la cache dei computer per forzare un refresh della tabella
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      toast({
-        title: "Successo!",
-        description: "Il computer è stato aggiornato correttamente.",
-      });
-      onClose(); // Chiudi il modal
+      console.log("PC aggiornato con successo!"); // <-- SOSTITUITO IL TOAST CON UN LOG
+      onClose();
     },
   });
 
