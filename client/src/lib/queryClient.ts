@@ -1,9 +1,12 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { toast } from "@/components/ui/use-toast"; // Importiamo il toast per gli errori
 
+// Le tue funzioni sono perfette, le manteniamo
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    const errorData = await res.json().catch(() => ({ message: res.statusText }));
+    const errorMessage = errorData.message || "Si è verificato un errore";
+    throw new Error(errorMessage);
   }
 }
 
@@ -29,21 +32,23 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-    });
+    // Usiamo apiRequest per coerenza, gestendo il metodo GET
+    const res = await apiRequest("GET", queryKey.join("/") as string);
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
     }
-
+    
+    // throwIfResNotOk è già in apiRequest, ma lo lasciamo per la gestione del 401
     await throwIfResNotOk(res);
     return await res.json();
   };
 
+// --- MODIFICA PRINCIPALE QUI SOTTO ---
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // La tua configurazione per le query è già ottima
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
@@ -51,6 +56,14 @@ export const queryClient = new QueryClient({
       retry: false,
     },
     mutations: {
+      // Aggiungiamo questa sezione per gestire gli errori di tutte le mutazioni
+      onError: (error) => {
+        toast({
+          title: "Errore",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
       retry: false,
     },
   },
