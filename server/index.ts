@@ -13,10 +13,8 @@ if (!process.env.SESSION_SECRET) {
 
 const app = express();
 
-// ---- MODIFICA CRUCIALE ----
-// Questa riga dice a Express di fidarsi del proxy di Vercel
+// Dice a Express di fidarsi del proxy di Vercel
 app.set('trust proxy', 1);
-// --------------------------
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -32,8 +30,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production", // Invia solo tramite HTTPS in produzione
+      httpOnly: true, // Impedisce l'accesso al cookie tramite JavaScript
+      sameSite: 'lax', // ---- MODIFICA CRUCIALE ---- Policy di sicurezza per i cookie
+      maxAge: 30 * 24 * 60 * 60 * 1000, // Scadenza: 30 giorni
     },
   }),
 );
