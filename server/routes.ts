@@ -12,7 +12,8 @@ const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
     return next(); // L'utente è loggato, procedi
   }
   // L'utente non è loggato, blocca la richiesta
-  res.status(401).json({ message: "Non autorizzato. Effettua il login." });
+  // CORREZIONE: Aggiunto "return" per terminare l'esecuzione qui
+  return res.status(401).json({ message: "Non autorizzato. Effettua il login." });
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -290,4 +291,3 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
-
