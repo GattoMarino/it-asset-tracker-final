@@ -17,7 +17,7 @@ import PCDetailModal from "@/components/pc/pc-detail-modal";
 import PCEditModal from "@/components/pc/PCEditModal";
 import type { ComputerWithClient } from "@shared/schema";
 
-// 1. Aggiungiamo una piccola funzione per leggere i parametri dall'URL
+// 1. Questa funzione legge i parametri dall'URL (es. ?clientId=1)
 const useQueryString = () => {
   const [location] = useLocation();
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
@@ -27,7 +27,7 @@ const useQueryString = () => {
 export default function Computers() {
   const queryString = useQueryString();
   
-  // 2. Se un clientId è passato nell'URL, lo usiamo come stato iniziale del filtro
+  // 2. Usiamo il valore dall'URL per impostare lo stato iniziale del filtro
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<string>(queryString.get("clientId") || "all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
