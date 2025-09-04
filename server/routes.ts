@@ -55,6 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // @ts-ignore
       req.session.userId = user.id;
 
+      // ---- LA CORREZIONE FONDAMENTALE ----
+      // Attendiamo che la sessione sia salvata nel DB prima di rispondere.
       req.session.save((err) => {
         if (err) {
           console.error("Errore nel salvataggio della sessione:", err);
@@ -62,6 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         res.status(200).json({ id: user.id, email: user.email });
       });
+      // ---------------------------------
 
     } catch (error) {
       console.error(error);
@@ -308,4 +311,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
-}  
+}
