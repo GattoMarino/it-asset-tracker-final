@@ -1,6 +1,8 @@
+// client/src/pages/clients.tsx
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { useLocation } from "wouter"; // 1. Importiamo l'hook per la navigazione
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,11 +11,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
-import ClientCard from "@/components/client/client-card";
 import ClientForm from "@/components/client/client-form";
+import ClientTable from "@/components/client/ClientTable";
 
 export default function Clients() {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [, setLocation] = useLocation(); // 2. Inizializziamo l'hook
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ["/api/clients"],
@@ -27,18 +30,16 @@ export default function Clients() {
     setShowAddForm(false);
   };
 
+  // 3. Questa funzione gestisce il click e ci porta alla pagina dei PC con il filtro
+  const handleViewClientPCs = (clientId: number) => {
+    setLocation(`/computers?clientId=${clientId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="p-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Dashboard Clienti</h2>
-          <p className="text-gray-600">Overview completa dei PC gestiti per ogni cliente</p>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-lg shadow-md h-64 animate-pulse" />
-          ))}
-        </div>
+        <div className="h-24 w-full bg-gray-200 animate-pulse mb-8 rounded-lg" />
+        <div className="h-64 w-full bg-gray-200 animate-pulse rounded-lg" />
       </div>
     );
   }
@@ -48,8 +49,8 @@ export default function Clients() {
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Dashboard Clienti</h2>
-            <p className="text-gray-600">Overview completa dei PC gestiti per ogni cliente</p>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Clienti</h2>
+            <p className="text-gray-600">Lista di tutti i clienti gestiti</p>
           </div>
           <Button onClick={handleAddClient} className="flex items-center">
             <Plus className="mr-2" size={16} />
@@ -58,14 +59,11 @@ export default function Clients() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {clients?.map((client: any) => (
-          <ClientCard key={client.id} client={client} />
-        ))}
-      </div>
-
-      {!clients?.length && (
-        <div className="text-center py-12">
+      {/* Usiamo la tabella e le passiamo la funzione di navigazione */}
+      {clients && clients.length > 0 ? (
+        <ClientTable clients={clients} onViewPCs={handleViewClientPCs} />
+      ) : (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <p className="text-gray-500 mb-4">Nessun cliente presente nel sistema</p>
           <Button onClick={handleAddClient} variant="outline">
             <Plus className="mr-2" size={16} />

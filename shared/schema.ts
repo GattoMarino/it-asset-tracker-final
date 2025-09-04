@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -44,14 +44,20 @@ export const computerActivities = pgTable("computer_activities", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// --- NUOVA TABELLA USERS ---
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   hashedPassword: text("hashed_password").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
-// -------------------------
+
+// --- TABELLA PER LE SESSIONI ---
+export const userSessions = pgTable("user_sessions", {
+  sid: varchar("sid").primaryKey(),
+  sess: json("sess").notNull(),
+  expire: timestamp("expire", { mode: "date" }).notNull(),
+});
+// ------------------------------------
 
 export const clientsRelations = relations(clients, ({ many }) => ({
   computers: many(computers),
@@ -80,11 +86,9 @@ export const computerActivitiesRelations = relations(computerActivities, ({ one 
   }),
 }));
 
-// --- NUOVA RELAZIONE USERS ---
 export const usersRelations = relations(users, ({ many }) => ({
   // qui in futuro potrai definire relazioni, per ora la lasciamo vuota
 }));
-// ---------------------------
 
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
@@ -107,26 +111,21 @@ export const insertComputerActivitySchema = createInsertSchema(computerActivitie
   createdAt: true,
 });
 
-// --- NUOVO ZOD SCHEMA PER USERS ---
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
 });
-// ----------------------------------
 
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Computer = typeof computers.$inferSelect;
 export type InsertComputer = z.infer<typeof insertComputerSchema>;
 export type ComputerHistory = typeof computerHistory.$inferSelect;
-export type InsertComputerHistory = z.infer<typeof insertComputerHistorySchema>;
+export type InsertComputerHistory = z.infer<typeof insertComputerHistorySchema>; // <-- RIGA CORRETTA
 export type ComputerActivity = typeof computerActivities.$inferSelect;
 export type InsertComputerActivity = z.infer<typeof insertComputerActivitySchema>;
-
-// --- NUOVI TIPI PER USER ---
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
-// ---------------------------
 
 export type ComputerWithClient = Computer & {
   client: Client;

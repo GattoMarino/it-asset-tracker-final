@@ -7,12 +7,11 @@ import bcrypt from "bcrypt";
 
 // Middleware per controllare se l'utente è autenticato
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  // @ts-ignore - Stiamo accedendo a una proprietà custom sulla sessione
+  // @ts-ignore
   if (req.session.userId) {
-    return next(); // L'utente è loggato, procedi
+    return next();
   }
-  // L'utente non è loggato, blocca la richiesta
-  res.status(401).json({ message: "Non autorizzato. Effettua il login." });
+  return res.status(401).json({ message: "Non autorizzato. Effettua il login." });
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -52,9 +51,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Credenziali non valide" });
       }
+      
       // @ts-ignore
       req.session.userId = user.id;
-      res.status(200).json({ id: user.id, email: user.email });
+
+      // ---- LA CORREZIONE FONDAMENTALE ----
+      // Attendiamo che la sessione sia salvata nel DB prima di rispondere.
+      req.session.save((err) => {
+        if (err) {
+          console.error("Errore nel salvataggio della sessione:", err);
+          return res.status(500).json({ message: "Errore durante il login" });
+        }
+        res.status(200).json({ id: user.id, email: user.email });
+      });
+      // ---------------------------------
+
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Errore durante il login" });
@@ -219,6 +230,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/computers/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteComputer(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Failed to delete computer:", error);
+      res.status(500).json({ message: "Eliminazione del computer fallita" });
+    }
+  });
+
   app.get("/api/computers/:id/history", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -290,4 +312,3 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
-

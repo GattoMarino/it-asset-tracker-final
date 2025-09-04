@@ -21,58 +21,24 @@ import { db } from "./db.js";
 import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // Clients
-  getAllClients(): Promise<Client[]>;
-  getClient(id: number): Promise<Client | undefined>;
-  createClient(client: InsertClient): Promise<Client>;
-
-  // Computers
-  getAllComputers(): Promise<ComputerWithClient[]>;
-  getComputer(id: number): Promise<ComputerWithHistory | undefined>;
-  getComputersByClient(clientId: number): Promise<ComputerWithClient[]>;
-  createComputer(computer: InsertComputer): Promise<Computer>;
-  updateComputer(id: number, updates: Partial<InsertComputer>): Promise<Computer>;
-  searchComputers(query: string, filters?: {
-    clientId?: number;
-    status?: string;
-    brand?: string;
-  }): Promise<ComputerWithClient[]>;
-
-  // Computer History
-  addComputerHistory(history: InsertComputerHistory): Promise<ComputerHistory>;
-  getComputerHistory(computerId: number): Promise<ComputerHistory[]>;
-
-  // Computer Activities
-  addComputerActivity(activity: InsertComputerActivity): Promise<ComputerActivity>;
-  getComputerActivities(computerId: number): Promise<ComputerActivity[]>;
-
-  // Dashboard Stats
-  getDashboardStats(): Promise<{
-    totalPCs: number;
-    activePCs: number;
-    maintenancePCs: number;
-    expiringSoon: number;
-  }>;
-
-  getClientStats(clientId: number): Promise<{
-    totalPCs: number;
-    activePCs: number;
-    maintenancePCs: number;
-    dismissedPCs: number;
-    desktopPCs: number;
-    laptopPCs: number;
-  }>;
-
-  getRecentActivity(): Promise<ComputerHistory[]>;
-  getWarrantyAlerts(): Promise<ComputerWithClient[]>;
-
-  // Users
-  createUser(user: InsertUser): Promise<User>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  getUserById(id: number): Promise<User | undefined>;
+  // ... (le altre interfacce rimangono invariate)
+  deleteComputer(id: number): Promise<void>; // <-- Aggiungi questa
+  // ...
 }
 
 export class DatabaseStorage implements IStorage {
+  // --- NUOVA FUNZIONE PER ELIMINARE UN PC ---
+  async deleteComputer(id: number): Promise<void> {
+    // Per sicurezza, eliminiamo prima la cronologia e le attività associate
+    await db.delete(computerHistory).where(eq(computerHistory.computerId, id));
+    await db.delete(computerActivities).where(eq(computerActivities.computerId, id));
+    
+    // Infine, eliminiamo il computer
+    await db.delete(computers).where(eq(computers.id, id));
+  }
+  // -----------------------------------------
+  
+  // ... (tutte le altre funzioni come getAllClients, getComputer, etc. rimangono qui)
   async getAllClients(): Promise<Client[]> {
     return await db.select().from(clients).orderBy(clients.name);
   }
@@ -354,4 +320,3 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
-
