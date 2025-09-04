@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { ArrowRight } from "lucide-react"; // Usiamo un'icona più adatta
 import type { Client } from "@shared/schema";
 
 interface ClientTableProps {
@@ -36,9 +36,10 @@ export default function ClientTable({ clients, onViewPCs }: ClientTableProps) {
               <TableCell>{client.type || 'N/D'}</TableCell>
               <TableCell className="text-gray-600">{client.address || 'N/D'}</TableCell>
               <TableCell className="text-right">
+                {/* 1. Il bottone ora chiama la funzione onViewPCs con l'ID del cliente */}
                 <Button variant="outline" size="sm" onClick={() => onViewPCs(client.id)}>
-                  <Eye className="mr-2 h-4 w-4" />
                   Visualizza PC
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </TableCell>
             </TableRow>

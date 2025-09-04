@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query"; // Aggiungi useQueryClient
+import { useLocation } from "wouter";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -14,25 +14,35 @@ import {
 import { Search } from "lucide-react";
 import PCTable from "@/components/pc/pc-table";
 import PCDetailModal from "@/components/pc/pc-detail-modal";
-import PCEditModal from "@/components/pc/PCEditModal"; // 1. Importa il nuovo componente
+import PCEditModal from "@/components/pc/PCEditModal";
 import type { ComputerWithClient } from "@shared/schema";
 
+// 1. Aggiungiamo una piccola funzione per leggere i parametri dall'URL
+const useQueryString = () => {
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  return searchParams;
+};
+
 export default function Computers() {
+  const queryString = useQueryString();
+  
+  // 2. Se un clientId è passato nell'URL, lo usiamo come stato iniziale del filtro
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedClient, setSelectedClient] = useState<string>("all");
+  const [selectedClient, setSelectedClient] = useState<string>(queryString.get("clientId") || "all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   
   const [selectedPC, setSelectedPC] = useState<ComputerWithClient | null>(null);
-  const [editingPC, setEditingPC] = useState<ComputerWithClient | null>(null); // 2. Aggiungi stato per il PC in modifica
+  const [editingPC, setEditingPC] = useState<ComputerWithClient | null>(null);
 
-  const queryClient = useQueryClient(); // Inizializza il queryClient
+  const queryClient = useQueryClient();
 
   const { data: clients } = useQuery({
     queryKey: ["/api/clients"],
   });
 
-  const { data: computers, isLoading } = useQuery({
+  const { data: computers, isLoading } = useQuery<ComputerWithClient[]>({
     queryKey: ["/api/computers", searchQuery, selectedClient, selectedStatus, selectedBrand],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -42,7 +52,7 @@ export default function Computers() {
       if (selectedBrand && selectedBrand !== "all") params.append("brand", selectedBrand);
       
       const response = await fetch(`/api/computers?${params.toString()}`, {
-        credentials: "include", // Assicuriamoci di inviare i cookie
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch computers");
       return response.json();
@@ -53,7 +63,6 @@ export default function Computers() {
     setSelectedPC(pc);
   };
 
-  // 3. Aggiungi la funzione per aprire il modal di modifica
   const handleEditPC = (pc: ComputerWithClient) => {
     setEditingPC(pc);
   };
@@ -65,7 +74,6 @@ export default function Computers() {
         <p className="text-gray-600">Visualizza e gestisci tutti i computer aziendali</p>
       </div>
 
-      {/* Search and Filters */}
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -139,15 +147,13 @@ export default function Computers() {
         </CardContent>
       </Card>
 
-      {/* PC Table */}
       <PCTable 
         computers={computers || []} 
         isLoading={isLoading}
         onViewPC={handleViewPC}
-        onEditPC={handleEditPC} // 4. Passa la nuova funzione alla tabella
+        onEditPC={handleEditPC}
       />
 
-      {/* PC Detail Modal */}
       {selectedPC && (
         <PCDetailModal 
           pc={selectedPC} 
@@ -156,7 +162,6 @@ export default function Computers() {
         />
       )}
 
-      {/* 5. Renderizza il nuovo modal di modifica */}
       {editingPC && (
         <PCEditModal
           pc={editingPC}

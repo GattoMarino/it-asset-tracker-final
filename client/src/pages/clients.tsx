@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation } from "wouter"; // 1. Importiamo l'hook per la navigazione
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import ClientForm from "@/components/client/client-form";
-import ClientTable from "@/components/client/ClientTable"; // Importiamo la nuova tabella
+import ClientTable from "@/components/client/ClientTable";
 
 export default function Clients() {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [, setLocation] = useLocation(); // Hook per la navigazione
+  const [, setLocation] = useLocation(); // 2. Inizializziamo l'hook
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ["/api/clients"],
@@ -30,7 +30,7 @@ export default function Clients() {
     setShowAddForm(false);
   };
 
-  // Funzione per navigare alla pagina dei PC con il filtro
+  // 3. Questa funzione gestisce il click e ci porta alla pagina dei PC con il filtro
   const handleViewClientPCs = (clientId: number) => {
     setLocation(`/computers?clientId=${clientId}`);
   };
@@ -59,7 +59,7 @@ export default function Clients() {
         </div>
       </div>
 
-      {/* Sostituiamo la griglia con la tabella */}
+      {/* Usiamo la tabella e le passiamo la funzione di navigazione */}
       {clients && clients.length > 0 ? (
         <ClientTable clients={clients} onViewPCs={handleViewClientPCs} />
       ) : (
