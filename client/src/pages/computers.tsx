@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -14,20 +14,49 @@ import {
 import { Search } from "lucide-react";
 import PCTable from "@/components/pc/pc-table";
 import PCDetailModal from "@/components/pc/pc-detail-modal";
+import PCEditModal from "@/components/pc/PCEditModal";
 import type { ComputerWithClient } from "@shared/schema";
 
+const useQueryString = () => {
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  return searchParams;
+};
+
 export default function Computers() {
+  const queryString = useQueryString();
+  const [location] = useLocation(); // Otteniamo la location per l'useEffect
+  
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedClient, setSelectedClient] = useState<string>("all");
+  const [selectedClient, setSelectedClient] = useState<string>(queryString.get("clientId") || "all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
+  
   const [selectedPC, setSelectedPC] = useState<ComputerWithClient | null>(null);
+  const [editingPC, setEditingPC] = useState<ComputerWithClient | null>(null);
 
-  const { data: clients } = useQuery({
+  // *** MODIFICA PRINCIPALE ***
+  // Questo hook si attiva ogni volta che l'URL (location) cambia.
+  // Legge il 'clientId' dall'URL e aggiorna lo stato del filtro.
+  useEffect(() => {
+    const clientIdFromUrl = queryString.get("clientId");
+    if (clientIdFromUrl) {
+      setSelectedClient(clientIdFromUrl);
+    }
+  }, [location, queryString]); // Si riattiva quando la 'location' cambia
+
+  const queryClient = useQueryClient();
+
+  const { data: clients } = useQuery<any[]>({
     queryKey: ["/api/clients"],
+    queryFn: async () => {
+      const response = await fetch('/api/clients', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch clients');
+      return response.json();
+    }
   });
 
-  const { data: computers, isLoading } = useQuery({
+  const { data: computers, isLoading } = useQuery<ComputerWithClient[]>({
     queryKey: ["/api/computers", searchQuery, selectedClient, selectedStatus, selectedBrand],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -36,7 +65,9 @@ export default function Computers() {
       if (selectedStatus && selectedStatus !== "all") params.append("status", selectedStatus);
       if (selectedBrand && selectedBrand !== "all") params.append("brand", selectedBrand);
       
-      const response = await fetch(`/api/computers?${params.toString()}`);
+      const response = await fetch(`/api/computers?${params.toString()}`, {
+        credentials: "include",
+      });
       if (!response.ok) throw new Error("Failed to fetch computers");
       return response.json();
     },
@@ -46,6 +77,10 @@ export default function Computers() {
     setSelectedPC(pc);
   };
 
+  const handleEditPC = (pc: ComputerWithClient) => {
+    setEditingPC(pc);
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -53,7 +88,6 @@ export default function Computers() {
         <p className="text-gray-600">Visualizza e gestisci tutti i computer aziendali</p>
       </div>
 
-      {/* Search and Filters */}
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -80,7 +114,7 @@ export default function Computers() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tutti i clienti</SelectItem>
-                  {clients?.map((client: any) => (
+                  {clients?.map((client) => (
                     <SelectItem key={client.id} value={client.id.toString()}>
                       {client.name}
                     </SelectItem>
@@ -127,19 +161,26 @@ export default function Computers() {
         </CardContent>
       </Card>
 
-      {/* PC Table */}
       <PCTable 
         computers={computers || []} 
         isLoading={isLoading}
         onViewPC={handleViewPC}
+        onEditPC={handleEditPC}
       />
 
-      {/* PC Detail Modal */}
       {selectedPC && (
         <PCDetailModal 
           pc={selectedPC} 
           isOpen={!!selectedPC}
           onClose={() => setSelectedPC(null)}
+        />
+      )}
+
+      {editingPC && (
+        <PCEditModal
+          pc={editingPC}
+          isOpen={!!editingPC}
+          onClose={() => setEditingPC(null)}
         />
       )}
     </div>
