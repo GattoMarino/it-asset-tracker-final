@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // 1. Aggiungi useEffect
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,7 +17,6 @@ import PCDetailModal from "@/components/pc/pc-detail-modal";
 import PCEditModal from "@/components/pc/PCEditModal";
 import type { ComputerWithClient } from "@shared/schema";
 
-// 1. Questa funzione legge i parametri dall'URL (es. ?clientId=1)
 const useQueryString = () => {
   const [location] = useLocation();
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
@@ -26,8 +25,8 @@ const useQueryString = () => {
 
 export default function Computers() {
   const queryString = useQueryString();
+  const [location] = useLocation(); // Aggiungiamo location per il dependency array
   
-  // 2. Usiamo il valore dall'URL per impostare lo stato iniziale del filtro
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<string>(queryString.get("clientId") || "all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
@@ -35,6 +34,15 @@ export default function Computers() {
   
   const [selectedPC, setSelectedPC] = useState<ComputerWithClient | null>(null);
   const [editingPC, setEditingPC] = useState<ComputerWithClient | null>(null);
+
+  // 2. Aggiungiamo questo "osservatore"
+  // Questo si attiverà ogni volta che l'URL cambia
+  useEffect(() => {
+    const clientIdFromUrl = queryString.get("clientId");
+    if (clientIdFromUrl) {
+      setSelectedClient(clientIdFromUrl);
+    }
+  }, [location]); // Si riattiva quando la 'location' (URL) cambia
 
   const queryClient = useQueryClient();
 
