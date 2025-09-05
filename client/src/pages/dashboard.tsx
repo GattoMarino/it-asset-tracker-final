@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef } from "react"; // <-- 1. CORREZIONE: Aggiunto 'useRef'
-import { motion, useSpring, useInView } from "framer-motion";
+import { useEffect } from "react";
+import { motion, animate, useMotionValue, useTransform } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -14,28 +14,24 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
 
+// --- 1. NUOVA VERSIONE DEL COMPONENTE ANIMATO (PIÙ STABILE) ---
 function AnimatedCounter({ value }: { value: number }) {
-  const ref = useRef(null); // <-- 2. CORREZIONE: Usato 'useRef' direttamente
-  const isInView = useInView(ref, { once: true });
-
-  const spring = useSpring(0, {
-    mass: 0.8,
-    stiffness: 100,
-    damping: 15,
-  });
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => Math.round(latest));
 
   useEffect(() => {
-    if (isInView) {
-      spring.set(value);
-    }
-  }, [spring, value, isInView]);
+    // La funzione 'animate' di Framer Motion è ideale per questo scopo
+    const controls = animate(count, value, {
+      duration: 1.5, // Durata dell'animazione in secondi
+      ease: "easeOut", // Effetto di "rallentamento" alla fine
+    });
+    // Funzione di pulizia per interrompere l'animazione se il componente viene smontato
+    return controls.stop;
+  }, [value]); // Si riattiva solo quando il valore finale cambia
 
-  return (
-    <motion.span ref={ref}>
-      {spring.to((val) => Math.round(val))}
-    </motion.span>
-  );
+  return <motion.span>{rounded}</motion.span>;
 }
+// ----------------------------------------------------------------
 
 export default function Dashboard() {
   const { data: stats } = useQuery({
@@ -91,8 +87,9 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Totale PC</p>
+                {/* --- 2. MODO PIÙ SICURO DI PASSARE I DATI --- */}
                 <p className="text-2xl font-bold text-gray-800">
-                  {stats ? <AnimatedCounter value={stats.totalPCs} /> : 0}
+                  {stats ? <AnimatedCounter value={Number(stats.totalPCs) || 0} /> : 0}
                 </p>
               </div>
             </div>
@@ -108,7 +105,7 @@ export default function Dashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">PC Attivi</p>
                 <p className="text-2xl font-bold text-gray-800">
-                  {stats ? <AnimatedCounter value={stats.activePCs} /> : 0}
+                  {stats ? <AnimatedCounter value={Number(stats.activePCs) || 0} /> : 0}
                 </p>
               </div>
             </div>
@@ -124,7 +121,7 @@ export default function Dashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">In Assistenza</p>
                 <p className="text-2xl font-bold text-gray-800">
-                  {stats ? <AnimatedCounter value={stats.maintenancePCs} /> : 0}
+                  {stats ? <AnimatedCounter value={Number(stats.maintenancePCs) || 0} /> : 0}
                 </p>
               </div>
             </div>
@@ -140,7 +137,7 @@ export default function Dashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Garanzia Scadente</p>
                 <p className="text-2xl font-bold text-gray-800">
-                  {stats ? <AnimatedCounter value={stats.expiringSoon} /> : 0}
+                  {stats ? <AnimatedCounter value={Number(stats.expiringSoon) || 0} /> : 0}
                 </p>
               </div>
             </div>
