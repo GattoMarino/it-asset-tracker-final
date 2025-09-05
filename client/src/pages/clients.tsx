@@ -1,5 +1,3 @@
-// client/src/pages/clients.tsx
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -12,11 +10,14 @@ import {
 import { Plus } from "lucide-react";
 import ClientForm from "@/components/client/client-form";
 import ClientTable from "@/components/client/ClientTable";
+import ClientStats from "@/components/client/ClientStats";
+import type { Client } from "@shared/schema";
 
 export default function Clients() {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const { data: clients, isLoading } = useQuery({
+  const { data: clients, isLoading } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
   });
 
@@ -26,6 +27,10 @@ export default function Clients() {
 
   const handleCloseForm = () => {
     setShowAddForm(false);
+  };
+  
+  const handleClientSelect = (client: Client) => {
+    setSelectedClient(client);
   };
 
   if (isLoading) {
@@ -39,42 +44,48 @@ export default function Clients() {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Clienti</h2>
-            <p className="text-gray-600">Lista di tutti i clienti gestiti</p>
-          </div>
-          <Button onClick={handleAddClient} className="flex items-center">
-            <Plus className="mr-2" size={16} />
-            Aggiungi Cliente
-          </Button>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">Clienti</h2>
+          <p className="text-gray-600">Seleziona un cliente per visualizzare i dettagli</p>
+        </div>
+        <Button onClick={handleAddClient} className="flex items-center">
+          <Plus className="mr-2" size={16} />
+          Aggiungi Cliente
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          {clients && clients.length > 0 ? (
+            <ClientTable 
+              clients={clients} 
+              onClientSelect={handleClientSelect}
+              selectedClientId={selectedClient?.id}
+            />
+          ) : (
+            <div className="text-center py-12 border-2 border-dashed rounded-lg">
+              <p className="text-gray-500 mb-4">Nessun cliente presente nel sistema</p>
+              <Button onClick={handleAddClient} variant="outline">
+                <Plus className="mr-2" size={16} />
+                Aggiungi il primo cliente
+              </Button>
+            </div>
+          )}
+        </div>
+        
+        <div className="lg:col-span-1">
+          <ClientStats client={selectedClient} />
         </div>
       </div>
 
-      {clients && clients.length > 0 ? (
-        <ClientTable clients={clients} />
-      ) : (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <p className="text-gray-500 mb-4">Nessun cliente presente nel sistema</p>
-          <Button onClick={handleAddClient} variant="outline">
-            <Plus className="mr-2" size={16} />
-            Aggiungi il primo cliente
-          </Button>
-        </div>
-      )}
-
-      {/* Add Client Dialog */}
       <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Aggiungi Nuovo Cliente</DialogTitle>
           </DialogHeader>
           <div className="p-6">
-            <ClientForm 
-              onCancel={handleCloseForm}
-              onSuccess={handleCloseForm}
-            />
+            <ClientForm onCancel={handleCloseForm} onSuccess={handleCloseForm} />
           </div>
         </DialogContent>
       </Dialog>
