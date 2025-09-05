@@ -14,24 +14,21 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
 
-// --- 1. NUOVA VERSIONE DEL COMPONENTE ANIMATO (PIÙ STABILE) ---
 function AnimatedCounter({ value }: { value: number }) {
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) => Math.round(latest));
 
   useEffect(() => {
-    // La funzione 'animate' di Framer Motion è ideale per questo scopo
     const controls = animate(count, value, {
-      duration: 1.5, // Durata dell'animazione in secondi
-      ease: "easeOut", // Effetto di "rallentamento" alla fine
+      // --- MODIFICA QUI ---
+      duration: 1.0, // Velocità aumentata (da 1.5 a 1.0 secondi)
+      ease: "easeOut",
     });
-    // Funzione di pulizia per interrompere l'animazione se il componente viene smontato
     return controls.stop;
-  }, [value]); // Si riattiva solo quando il valore finale cambia
+  }, [value]);
 
   return <motion.span>{rounded}</motion.span>;
 }
-// ----------------------------------------------------------------
 
 export default function Dashboard() {
   const { data: stats } = useQuery({
@@ -87,7 +84,6 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Totale PC</p>
-                {/* --- 2. MODO PIÙ SICURO DI PASSARE I DATI --- */}
                 <p className="text-2xl font-bold text-gray-800">
                   {stats ? <AnimatedCounter value={Number(stats.totalPCs) || 0} /> : 0}
                 </p>
