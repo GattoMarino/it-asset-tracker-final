@@ -1,6 +1,8 @@
+// client/src/pages/clients.tsx
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation } from "wouter"; // 1. Importiamo l'hook per la navigazione
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,7 +16,7 @@ import ClientTable from "@/components/client/ClientTable";
 
 export default function Clients() {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [, setLocation] = useLocation();
+  const [, setLocation] = useLocation(); // 2. Inizializziamo l'hook
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ["/api/clients"],
@@ -28,9 +30,8 @@ export default function Clients() {
     setShowAddForm(false);
   };
 
-  // --- MODIFICATO ---
-  // Ora la funzione accetta l'ID del cliente e costruisce l'URL corretto.
-  const handleViewClientPCs = (clientId: string | number) => {
+  // 3. Questa funzione gestisce il click e ci porta alla pagina dei PC con il filtro
+  const handleViewClientPCs = (clientId: number) => {
     setLocation(`/computers?clientId=${clientId}`);
   };
 
@@ -58,6 +59,7 @@ export default function Clients() {
         </div>
       </div>
 
+      {/* Usiamo la tabella e le passiamo la funzione di navigazione */}
       {clients && clients.length > 0 ? (
         <ClientTable clients={clients} onViewPCs={handleViewClientPCs} />
       ) : (
@@ -70,6 +72,7 @@ export default function Clients() {
         </div>
       )}
 
+      {/* Add Client Dialog */}
       <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
         <DialogContent className="max-w-md">
           <DialogHeader>
