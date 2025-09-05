@@ -18,7 +18,7 @@ import {
   type InsertUser,
 } from "../shared/schema.js";
 import { db } from "./db.js";
-import { eq, desc, and, ilike, or, sql, count } from "drizzle-orm"; // Aggiunto 'count' per pulizia
+import { eq, desc, and, ilike, or, sql, count } from "drizzle-orm";
 
 export interface IStorage {
   // ... interfacce ...
@@ -26,15 +26,41 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // --- FUNZIONE CORRETTA PER LE STATISTICHE DELLA DASHBOARD ---
+  async getDashboardStats(): Promise<{
+    totalPCs: number;
+    activePCs: number;
+    maintenancePCs: number;
+    expiringSoon: number;
+  }> {
+    const [totalResult, activeResult, maintenanceResult, expiringResult] = await Promise.all([
+      db.select({ value: count() }).from(computers),
+      db.select({ value: count() }).from(computers).where(eq(computers.status, 'active')),
+      db.select({ value: count() }).from(computers).where(eq(computers.status, 'maintenance')),
+      db.select({ value: count() }).from(computers).where(
+        and(
+          sql`warranty_expiry > CURRENT_DATE`,
+          sql`warranty_expiry <= CURRENT_DATE + INTERVAL '30 days'`
+        )
+      )
+    ]);
+
+    return {
+      totalPCs: totalResult[0]?.value || 0,
+      activePCs: activeResult[0]?.value || 0,
+      maintenancePCs: maintenanceResult[0]?.value || 0,
+      expiringSoon: expiringResult[0]?.value || 0,
+    };
+  }
+
+  // --- IL RESTO DEL FILE RIMANE INVARIATO ---
+
   async deleteComputer(id: number): Promise<void> {
     await db.delete(computerHistory).where(eq(computerHistory.computerId, id));
     await db.delete(computerActivities).where(eq(computerActivities.computerId, id));
     await db.delete(computers).where(eq(computers.id, id));
   }
   
-  // ... altre funzioni ...
-  
-  // --- FUNZIONE CORRETTA ---
   async getClientStats(clientId: number): Promise<{
     totalPCs: number;
     maintenancePCs: number;
@@ -45,13 +71,11 @@ export class DatabaseStorage implements IStorage {
     const [totalResult, maintenanceResult, desktopResult, laptopResult, serverResult] = await Promise.all([
       db.select({ value: count() }).from(computers).where(eq(computers.clientId, clientId)),
       db.select({ value: count() }).from(computers).where(and(eq(computers.clientId, clientId), eq(computers.status, 'maintenance'))),
-      // Corretto per usare 'ilike' per ignorare maiuscole/minuscole
       db.select({ value: count() }).from(computers).where(and(eq(computers.clientId, clientId), ilike(computers.type, 'desktop'))),
       db.select({ value: count() }).from(computers).where(and(eq(computers.clientId, clientId), ilike(computers.type, 'laptop'))),
       db.select({ value: count() }).from(computers).where(and(eq(computers.clientId, clientId), ilike(computers.type, 'server'))),
     ]);
 
-    // Corretto per usare i nomi che il frontend si aspetta (es. 'laptops' invece di 'laptopPCs')
     return {
       totalPCs: totalResult[0]?.value || 0,
       maintenancePCs: maintenanceResult[0]?.value || 0,
@@ -61,7 +85,6 @@ export class DatabaseStorage implements IStorage {
     };
   }
   
-  // ... (tutte le altre funzioni del tuo file rimangono qui sotto)
   async getAllClients(): Promise<Client[]> {
     return await db.select().from(clients).orderBy(clients.name);
   }
@@ -109,19 +132,6 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getComputersByClient(clientId: number): Promise<ComputerWithClient[]> {
-    return await db
-      .select()
-      .from(computers)
-      .leftJoin(clients, eq(computers.clientId, clients.id))
-      .where(eq(computers.clientId, clientId))
-      .orderBy(desc(computers.createdAt))
-      .then(rows => rows.map(row => ({
-        ...row.computers,
-        client: row.clients!
-      })));
-  }
-
   async createComputer(insertComputer: InsertComputer): Promise<Computer> {
     const [computer] = await db.insert(computers).values({
       ...insertComputer,
@@ -143,8 +153,8 @@ export class DatabaseStorage implements IStorage {
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(computers.id, id))
       .returning();
-
-    // ... (logica di history)
+    
+    // ... logica di history ...
     return computer;
   }
 
@@ -220,10 +230,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(computerActivities.computerId, computerId))
       .orderBy(desc(computerActivities.createdAt));
   }
-
-  async getDashboardStats(): Promise<any> {
-    // ...
-  }
   
   async getRecentActivity(): Promise<ComputerHistory[]> {
     return await db
@@ -234,8 +240,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getWarrantyAlerts(): Promise<ComputerWithClient[]> {
-    // ...
-    return [];
+    return await db
+      .select()
+      .from(computers)
+      .leftJoin(clients, eq(computers.clientId, clients.id))
+      .where(
+        and(
+          sql`warranty_expiry > CURRENT_DATE`,
+          sql`warranty_expiry <= CURRENT_DATE + INTERVAL '30 days'`
+        )
+      )
+      .orderBy(computers.warrantyExpiry)
+      .then(rows => rows.map(row => ({
+        ...row.computers,
+        client: row.clients!
+      })));
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
