@@ -4,22 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Laptop, Wrench, HardDrive, Server, Monitor } from "lucide-react";
 import type { Client } from "@shared/schema";
 
-// --- 1. Definiamo le varianti per l'animazione sfalsata ---
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08, // Ritardo tra l'animazione di ogni elemento figlio
+      staggerChildren: 0.08,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, x: 50 }, // Parte da destra (x: 50)
-  visible: { opacity: 1, x: 0 }, // Arriva nella sua posizione finale (x: 0)
+  hidden: { opacity: 0, x: 50 },
+  visible: { opacity: 1, x: 0 },
 };
-// ---------------------------------------------------------
 
 interface ClientStatsProps {
   client: Client | null;
@@ -44,7 +42,8 @@ export default function ClientStats({ client }: ClientStatsProps) {
     return (
       <Card className="h-full">
         <CardHeader>
-          <CardTitle className="text-center">Statistiche Cliente</CardTitle>
+          {/* Rimosso text-center */}
+          <CardTitle>Statistiche Cliente</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-16 text-gray-500">
@@ -57,10 +56,10 @@ export default function ClientStats({ client }: ClientStatsProps) {
 
   return (
     <Card className="h-full">
-      <CardHeader className="text-center">
-        {/* --- 2. Aggiunta animazione al titolo --- */}
+      {/* --- 1. Rimosso text-center per allineare il titolo a sinistra --- */}
+      <CardHeader>
         <motion.div
-          key={client.id} // La chiave fa ripartire l'animazione al cambio di cliente
+          key={client.id}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -75,7 +74,7 @@ export default function ClientStats({ client }: ClientStatsProps) {
         ) : (
           <motion.div
             key={client.id}
-            variants={containerVariants} // Applica la variante contenitore
+            variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="space-y-4"
@@ -85,35 +84,35 @@ export default function ClientStats({ client }: ClientStatsProps) {
               label="Totale PC"
               value={stats?.totalPCs}
               iconBgClass="bg-blue-100 text-blue-700"
-              borderClass="border-blue-200 bg-blue-50/60" // Sfondo più sbiadito
+              borderClass="border-blue-200 bg-blue-50/60"
             />
             <StatRow
               icon={<Wrench size={28} />}
               label="In Assistenza"
               value={stats?.maintenancePCs}
               iconBgClass="bg-yellow-100 text-yellow-700"
-              borderClass="border-yellow-200 bg-yellow-50/60" // Sfondo più sbiadito
+              borderClass="border-yellow-200 bg-yellow-50/60"
             />
             <StatRow
               icon={<Laptop size={28} />}
               label="Laptop"
               value={stats?.laptops}
               iconBgClass="bg-green-100 text-green-700"
-              borderClass="border-green-200 bg-green-50/60" // Sfondo più sbiadito
+              borderClass="border-green-200 bg-green-50/60"
             />
             <StatRow
               icon={<Monitor size={28} />}
               label="Desktop"
               value={stats?.desktops}
               iconBgClass="bg-purple-100 text-purple-700"
-              borderClass="border-purple-200 bg-purple-50/60" // Sfondo più sbiadito
+              borderClass="border-purple-200 bg-purple-50/60"
             />
             <StatRow
               icon={<Server size={28} />}
               label="Server"
               value={stats?.servers}
               iconBgClass="bg-slate-100 text-slate-700"
-              borderClass="border-slate-200 bg-slate-50/60" // Sfondo più sbiadito
+              borderClass="border-slate-200 bg-slate-50/60"
             />
           </motion.div>
         )}
@@ -131,9 +130,9 @@ interface StatRowProps {
 }
 
 const StatRow = ({ icon, label, value, iconBgClass, borderClass }: StatRowProps) => (
-  <motion.div variants={itemVariants} className={`flex items-center justify-between p-3 rounded-xl border ${borderClass}`}>
-    {/* --- 3. Titoli più centralizzati/spaziati --- */}
-    <div className="flex items-center text-gray-800 w-2/3"> {/* Larghezza fissa per allineare le etichette */}
+  // --- 2. Aggiunto padding a destra (pr-6) per spostare il numero ---
+  <motion.div variants={itemVariants} className={`flex items-center justify-between py-3 pl-3 pr-6 rounded-xl border ${borderClass}`}>
+    <div className="flex items-center text-gray-800 w-2/3">
       <div className={`mr-4 w-12 h-12 flex items-center justify-center rounded-full flex-shrink-0 ${iconBgClass}`}>
         {icon}
       </div>
