@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"; // <-- CORREZIONE QUI
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Laptop, Wrench, HardDrive, Server, Monitor } from "lucide-react";
@@ -67,12 +67,14 @@ export default function ClientStats({ client }: ClientStatsProps) {
   );
 }
 
+// Modificato il font-size del valore numerico
 const StatRow = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: any }) => (
   <div className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-gray-50">
     <div className="flex items-center text-gray-800">
       <div className="mr-4">{icon}</div>
       <span className="font-medium">{label}</span>
     </div>
-    <span className="font-bold text-xl text-gray-900">{value || 0}</span>
+    {/* --- MODIFICA QUI --- */}
+    <span className="font-bold text-2xl text-gray-900">{value || 0}</span> {/* Dimensione aumentata a text-2xl */}
   </div>
 );

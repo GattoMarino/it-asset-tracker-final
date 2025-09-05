@@ -26,10 +26,12 @@ export const computers = pgTable("computers", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// ... (il resto delle definizioni delle tabelle e delle relazioni rimane invariato) ...
+
 export const computerHistory = pgTable("computer_history", {
   id: serial("id").primaryKey(),
   computerId: integer("computer_id").references(() => computers.id).notNull(),
-  action: text("action").notNull(), // assigned, unassigned, maintenance, returned, note_added, status_changed
+  action: text("action").notNull(),
   description: text("description").notNull(),
   previousValue: text("previous_value"),
   newValue: text("new_value"),
@@ -39,7 +41,7 @@ export const computerHistory = pgTable("computer_history", {
 export const computerActivities = pgTable("computer_activities", {
   id: serial("id").primaryKey(),
   computerId: integer("computer_id").references(() => computers.id).notNull(),
-  type: text("type").notNull(), // "hw_support", "sw_support", "local_assistance", "remote_assistance", "other"
+  type: text("type").notNull(),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -51,13 +53,11 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// --- TABELLA PER LE SESSIONI ---
 export const userSessions = pgTable("user_sessions", {
   sid: varchar("sid").primaryKey(),
   sess: json("sess").notNull(),
   expire: timestamp("expire", { mode: "date" }).notNull(),
 });
-// ------------------------------------
 
 export const clientsRelations = relations(clients, ({ many }) => ({
   computers: many(computers),
@@ -87,7 +87,6 @@ export const computerActivitiesRelations = relations(computerActivities, ({ one 
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
-  // qui in futuro potrai definire relazioni, per ora la lasciamo vuota
 }));
 
 export const insertClientSchema = createInsertSchema(clients).omit({
@@ -95,11 +94,19 @@ export const insertClientSchema = createInsertSchema(clients).omit({
   createdAt: true,
 });
 
-export const insertComputerSchema = createInsertSchema(computers).omit({
+// --- MODIFICA QUI ---
+// Separiamo lo schema base e poi lo estendiamo per definire `type` come un enum.
+// Questo garantisce che solo i valori corretti possano essere inseriti.
+const baseInsertComputerSchema = createInsertSchema(computers).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
+
+export const insertComputerSchema = baseInsertComputerSchema.extend({
+  type: z.enum(['desktop', 'laptop', 'workstation', 'server', 'tablet']),
+});
+// --- FINE MODIFICA ---
 
 export const insertComputerHistorySchema = createInsertSchema(computerHistory).omit({
   id: true,
@@ -121,7 +128,7 @@ export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Computer = typeof computers.$inferSelect;
 export type InsertComputer = z.infer<typeof insertComputerSchema>;
 export type ComputerHistory = typeof computerHistory.$inferSelect;
-export type InsertComputerHistory = z.infer<typeof insertComputerHistorySchema>; // <-- RIGA CORRETTA
+export type InsertComputerHistory = z.infer<typeof insertComputerHistorySchema>;
 export type ComputerActivity = typeof computerActivities.$inferSelect;
 export type InsertComputerActivity = z.infer<typeof insertComputerActivitySchema>;
 export type User = typeof users.$inferSelect;
