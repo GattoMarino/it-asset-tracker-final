@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react"; // 1. Aggiungi useEffect
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,26 +25,14 @@ const useQueryString = () => {
 
 export default function Computers() {
   const queryString = useQueryString();
-  const [location] = useLocation(); // Aggiungiamo location per il dependency array
   
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedClient, setSelectedClient] = useState<string>(queryString.get("clientId") || "all");
+  const [searchQuery, setSearchQuery] = useState(queryString.get("search") || "");
+  const [selectedClient, setSelectedClient] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   
   const [selectedPC, setSelectedPC] = useState<ComputerWithClient | null>(null);
   const [editingPC, setEditingPC] = useState<ComputerWithClient | null>(null);
-
-  // 2. Aggiungiamo questo "osservatore"
-  // Questo si attiverà ogni volta che l'URL cambia
-  useEffect(() => {
-    const clientIdFromUrl = queryString.get("clientId");
-    if (clientIdFromUrl) {
-      setSelectedClient(clientIdFromUrl);
-    }
-  }, [location]); // Si riattiva quando la 'location' (URL) cambia
-
-  const queryClient = useQueryClient();
 
   const { data: clients } = useQuery({
     queryKey: ["/api/clients"],
