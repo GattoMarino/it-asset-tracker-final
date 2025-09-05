@@ -28,10 +28,10 @@ export default function Clients() {
     setShowAddForm(false);
   };
 
-  // Modifichiamo la funzione per inviare il nome del cliente
-  const handleViewClientPCs = (clientName: string) => {
-    const encodedName = encodeURIComponent(clientName);
-    setLocation(`/computers?search=${encodedName}`);
+  // --- MODIFICATO ---
+  // Ora la funzione accetta l'ID del cliente e costruisce l'URL corretto.
+  const handleViewClientPCs = (clientId: string | number) => {
+    setLocation(`/computers?clientId=${clientId}`);
   };
 
   if (isLoading) {
