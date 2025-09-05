@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useState } from "react";
+=======
+import { useState, useEffect } from "react";
+>>>>>>> f0bd6fd30251de42e687c77932dc271dd52af825
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +29,10 @@ const useQueryString = () => {
 
 export default function Computers() {
   const queryString = useQueryString();
+<<<<<<< HEAD
+=======
+  const [location] = useLocation(); 
+>>>>>>> f0bd6fd30251de42e687c77932dc271dd52af825
   
   const [searchQuery, setSearchQuery] = useState(queryString.get("search") || "");
   const [selectedClient, setSelectedClient] = useState<string>("all");
@@ -34,8 +42,28 @@ export default function Computers() {
   const [selectedPC, setSelectedPC] = useState<ComputerWithClient | null>(null);
   const [editingPC, setEditingPC] = useState<ComputerWithClient | null>(null);
 
+<<<<<<< HEAD
   const { data: clients } = useQuery({
+=======
+  // Questo hook si attiva ogni volta che l'URL (location) cambia.
+  // Legge il 'clientId' dall'URL e aggiorna lo stato del filtro.
+  useEffect(() => {
+    const clientIdFromUrl = queryString.get("clientId");
+    if (clientIdFromUrl) {
+      setSelectedClient(clientIdFromUrl);
+    }
+  }, [location]); // Si riattiva quando la 'location' (URL) cambia
+
+  const queryClient = useQueryClient();
+
+  const { data: clients } = useQuery<any[]>({
+>>>>>>> f0bd6fd30251de42e687c77932dc271dd52af825
     queryKey: ["/api/clients"],
+    queryFn: async () => {
+      const response = await fetch('/api/clients', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch clients');
+      return response.json();
+    }
   });
 
   const { data: computers, isLoading } = useQuery<ComputerWithClient[]>({
@@ -96,7 +124,7 @@ export default function Computers() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tutti i clienti</SelectItem>
-                  {clients?.map((client: any) => (
+                  {clients?.map((client) => (
                     <SelectItem key={client.id} value={client.id.toString()}>
                       {client.name}
                     </SelectItem>
