@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
+import { motion, useSpring, useInView } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -11,6 +13,31 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
+
+// --- 1. NUOVO COMPONENTE PER L'ANIMAZIONE DEI NUMERI ---
+function AnimatedCounter({ value }: { value: number }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  const spring = useSpring(0, {
+    mass: 0.8,
+    stiffness: 100,
+    damping: 15,
+  });
+
+  useEffect(() => {
+    if (isInView) {
+      spring.set(value);
+    }
+  }, [spring, value, isInView]);
+
+  return (
+    <motion.span ref={ref}>
+      {spring.to((val) => Math.round(val))}
+    </motion.span>
+  );
+}
+// ----------------------------------------------------
 
 export default function Dashboard() {
   const { data: stats } = useQuery({
@@ -57,7 +84,7 @@ export default function Dashboard() {
         <p className="text-gray-600">Panoramica generale del parco macchine aziendale</p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards con i numeri animati */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
@@ -67,7 +94,10 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Totale PC</p>
-                <p className="text-2xl font-bold text-gray-800">{stats?.totalPCs || 0}</p>
+                {/* --- 2. Utilizzo del componente animato --- */}
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats ? <AnimatedCounter value={stats.totalPCs} /> : 0}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -81,7 +111,9 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">PC Attivi</p>
-                <p className="text-2xl font-bold text-gray-800">{stats?.activePCs || 0}</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats ? <AnimatedCounter value={stats.activePCs} /> : 0}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -95,7 +127,9 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">In Assistenza</p>
-                <p className="text-2xl font-bold text-gray-800">{stats?.maintenancePCs || 0}</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats ? <AnimatedCounter value={stats.maintenancePCs} /> : 0}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -109,14 +143,16 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Garanzia Scadente</p>
-                <p className="text-2xl font-bold text-gray-800">{stats?.expiringSoon || 0}</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats ? <AnimatedCounter value={stats.expiringSoon} /> : 0}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activity & Warranty Alerts */}
+      {/* Il resto del componente rimane invariato */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card>
           <div className="p-6 border-b border-gray-200">
