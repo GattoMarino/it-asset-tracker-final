@@ -21,7 +21,7 @@ export default function ClientTable({ clients, onClientSelect, selectedClientId 
         <TableHeader>
           <TableRow>
             <TableHead>Nome Cliente</TableHead>
-            <TableHead>Tipologia</TableHead>
+            <TableHead>Denominazione</TableHead>
             <TableHead>Indirizzo</TableHead>
           </TableRow>
         </TableHeader>
