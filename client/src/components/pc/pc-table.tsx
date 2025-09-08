@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Edit } from "lucide-react"; // --- 1. Rimosso 'History' ---
+import { Eye, Edit } from "lucide-react";
 import type { ComputerWithClient } from "@shared/schema";
 
 const loadingContainerVariants = {
@@ -148,8 +148,8 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
               <TableHead>Assegnato a</TableHead>
               <TableHead>Stato</TableHead>
               <TableHead>Garanzia</TableHead>
-              {/* --- 2. Sposto la colonna "Azioni" a destra con 'text-right' --- */}
-              <TableHead className="text-right pr-6">Azioni</TableHead> 
+              {/* --- 1. Rimosso il testo "Azioni" --- */}
+              <TableHead className="text-right pr-6"></TableHead> 
             </TableRow>
           </TableHeader>
           <motion.tbody
@@ -189,26 +189,26 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                 <TableCell>
                   {getWarrantyStatus(pc.warrantyExpiry)}
                 </TableCell>
-                {/* --- 3. Modifiche ai bottoni: rimozione, ingrandimento, spaziatura --- */}
                 <TableCell className="text-right pr-6">
-                  <div className="flex justify-end space-x-2"> {/* Aggiunto justify-end */}
+                  <div className="flex justify-end space-x-2">
                     <Button
                       variant="ghost"
-                      size="icon" // Uso size="icon" con icona più grande
+                      size="icon"
                       onClick={() => onViewPC(pc)}
                       className="text-primary hover:text-blue-800"
                     >
-                      <Eye size={20} /> {/* Ingandito a 20 */}
+                      {/* --- 2. Icona ingrandita --- */}
+                      <Eye size={22} />
                     </Button>
                     <Button
                       variant="ghost"
-                      size="icon" // Uso size="icon" con icona più grande
+                      size="icon"
                       className="text-yellow-600 hover:text-yellow-800"
                       onClick={() => onEditPC(pc)}
                     >
-                      <Edit size={20} /> {/* Ingandito a 20 */}
+                      {/* --- 2. Icona ingrandita --- */}
+                      <Edit size={22} />
                     </Button>
-                    {/* --- Rimosso il Button per l'icona History --- */}
                   </div>
                 </TableCell>
               </motion.tr>
