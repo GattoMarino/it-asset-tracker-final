@@ -13,58 +13,51 @@ import {
 import { Eye, Edit, History } from "lucide-react";
 import type { ComputerWithClient } from "@shared/schema";
 
+// --- 1. NUOVO COMPONENTE PER L'ANIMAZIONE DI CARICAMENTO SFALSATA ---
 const loadingContainerVariants = {
-  start: {
+  animate: {
     transition: {
-      staggerChildren: 0.2,
+      staggerChildren: 0.15, // Applica un ritardo di 0.15s tra l'inizio dell'animazione di ogni puntino
     },
   },
-  end: {},
 };
 
-const loadingCircleVariants = {
-  start: {
-    y: "50%",
+const loadingDotVariants = {
+  animate: {
+    y: [0, -10, 0], // Animazione: parte da 0, sale di 10px, torna a 0
+    transition: {
+      duration: 1.2,
+      ease: "easeInOut",
+      repeat: Infinity, // Ripete l'animazione all'infinito
+    },
   },
-  end: {
-    y: "150%",
-  },
-};
-
-const loadingCircleTransition = {
-  duration: 0.5,
-  repeat: Infinity,
-  repeatType: "reverse" as const,
-  ease: "easeInOut",
 };
 
 const LoadingIndicator = () => (
-  <div className="flex items-center justify-center p-8 text-center text-gray-500">
-    <span className="mr-2">Caricamento</span>
+  <div className="flex items-center justify-center p-8 text-center text-gray-500 text-lg">
+    <span className="mr-3">Caricamento</span>
     <motion.div
-      className="flex"
+      className="flex h-6 items-center" // Contenitore per i puntini
       variants={loadingContainerVariants}
-      initial="start"
-      animate="end"
+      initial="initial" // Stato iniziale non definito, parte subito con l'animazione
+      animate="animate"
     >
       <motion.span
-        className="block w-2 h-2 bg-gray-500 rounded-full mx-0.5"
-        variants={loadingCircleVariants}
-        transition={loadingCircleTransition}
+        className="block w-3 h-3 bg-gray-500 rounded-full"
+        variants={loadingDotVariants}
       />
       <motion.span
-        className="block w-2 h-2 bg-gray-500 rounded-full mx-0.5"
-        variants={loadingCircleVariants}
-        transition={loadingCircleTransition}
+        className="block w-3 h-3 bg-gray-500 rounded-full mx-1.5"
+        variants={loadingDotVariants}
       />
       <motion.span
-        className="block w-2 h-2 bg-gray-500 rounded-full mx-0.5"
-        variants={loadingCircleVariants}
-        transition={loadingCircleTransition}
+        className="block w-3 h-3 bg-gray-500 rounded-full"
+        variants={loadingDotVariants}
       />
     </motion.div>
   </div>
 );
+// -----------------------------------------------------------------
 
 const tableContainerVariants = {
   hidden: { opacity: 0 },
@@ -89,7 +82,6 @@ interface PCTableProps {
 }
 
 export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PCTableProps) {
-  // --- 1. LOGICA RIPRISTINATA ---
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
@@ -107,7 +99,6 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
     }
   };
 
-  // --- 2. LOGICA RIPRISTINATA ---
   const getWarrantyStatus = (warrantyExpiry: string | null) => {
     if (!warrantyExpiry) return <span className="text-gray-500">N/A</span>;
     
