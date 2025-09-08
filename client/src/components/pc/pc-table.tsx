@@ -10,25 +10,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Edit, History } from "lucide-react";
+import { Eye, Edit } from "lucide-react"; // --- 1. Rimosso 'History' ---
 import type { ComputerWithClient } from "@shared/schema";
 
-// --- 1. NUOVO COMPONENTE PER L'ANIMAZIONE DI CARICAMENTO SFALSATA ---
 const loadingContainerVariants = {
   animate: {
     transition: {
-      staggerChildren: 0.15, // Applica un ritardo di 0.15s tra l'inizio dell'animazione di ogni puntino
+      staggerChildren: 0.15,
     },
   },
 };
 
 const loadingDotVariants = {
   animate: {
-    y: [0, -10, 0], // Animazione: parte da 0, sale di 10px, torna a 0
+    y: [0, -10, 0],
     transition: {
       duration: 1.2,
       ease: "easeInOut",
-      repeat: Infinity, // Ripete l'animazione all'infinito
+      repeat: Infinity,
     },
   },
 };
@@ -37,9 +36,9 @@ const LoadingIndicator = () => (
   <div className="flex items-center justify-center p-8 text-center text-gray-500 text-lg">
     <span className="mr-3">Caricamento</span>
     <motion.div
-      className="flex h-6 items-center" // Contenitore per i puntini
+      className="flex h-6 items-center"
       variants={loadingContainerVariants}
-      initial="initial" // Stato iniziale non definito, parte subito con l'animazione
+      initial="initial"
       animate="animate"
     >
       <motion.span
@@ -57,7 +56,6 @@ const LoadingIndicator = () => (
     </motion.div>
   </div>
 );
-// -----------------------------------------------------------------
 
 const tableContainerVariants = {
   hidden: { opacity: 0 },
@@ -150,7 +148,8 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
               <TableHead>Assegnato a</TableHead>
               <TableHead>Stato</TableHead>
               <TableHead>Garanzia</TableHead>
-              <TableHead>Azioni</TableHead>
+              {/* --- 2. Sposto la colonna "Azioni" a destra con 'text-right' --- */}
+              <TableHead className="text-right pr-6">Azioni</TableHead> 
             </TableRow>
           </TableHeader>
           <motion.tbody
@@ -190,31 +189,26 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                 <TableCell>
                   {getWarrantyStatus(pc.warrantyExpiry)}
                 </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
+                {/* --- 3. Modifiche ai bottoni: rimozione, ingrandimento, spaziatura --- */}
+                <TableCell className="text-right pr-6">
+                  <div className="flex justify-end space-x-2"> {/* Aggiunto justify-end */}
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon" // Uso size="icon" con icona più grande
                       onClick={() => onViewPC(pc)}
                       className="text-primary hover:text-blue-800"
                     >
-                      <Eye size={16} />
+                      <Eye size={20} /> {/* Ingandito a 20 */}
                     </Button>
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon" // Uso size="icon" con icona più grande
                       className="text-yellow-600 hover:text-yellow-800"
                       onClick={() => onEditPC(pc)}
                     >
-                      <Edit size={16} />
+                      <Edit size={20} /> {/* Ingandito a 20 */}
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      <History size={16} />
-                    </Button>
+                    {/* --- Rimosso il Button per l'icona History --- */}
                   </div>
                 </TableCell>
               </motion.tr>
