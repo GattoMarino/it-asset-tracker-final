@@ -13,11 +13,10 @@ import {
 import { Eye, Edit, History } from "lucide-react";
 import type { ComputerWithClient } from "@shared/schema";
 
-// --- 1. NUOVO COMPONENTE PER L'ANIMAZIONE DI CARICAMENTO ---
 const loadingContainerVariants = {
   start: {
     transition: {
-      staggerChildren: 0.2, // Ritardo tra i puntini
+      staggerChildren: 0.2,
     },
   },
   end: {},
@@ -34,7 +33,7 @@ const loadingCircleVariants = {
 
 const loadingCircleTransition = {
   duration: 0.5,
-  repeat: Infinity, // Ripete l'animazione all'infinito
+  repeat: Infinity,
   repeatType: "reverse" as const,
   ease: "easeInOut",
 };
@@ -66,7 +65,6 @@ const LoadingIndicator = () => (
     </motion.div>
   </div>
 );
-// -----------------------------------------------------------
 
 const tableContainerVariants = {
   hidden: { opacity: 0 },
@@ -91,18 +89,60 @@ interface PCTableProps {
 }
 
 export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PCTableProps) {
+  // --- 1. LOGICA RIPRISTINATA ---
   const getStatusBadge = (status: string) => {
-    // ... (funzione invariata)
+    switch (status) {
+      case "active":
+        return <Badge className="bg-green-100 text-green-800">Attivo</Badge>;
+      case "maintenance":
+        return <Badge className="bg-yellow-100 text-yellow-800">In Assistenza</Badge>;
+      case "dismissed":
+        return <Badge className="bg-gray-100 text-gray-800">Dismesso</Badge>;
+      case "preparation":
+        return <Badge className="bg-blue-100 text-blue-800">In Preparazione</Badge>;
+      case "storage":
+        return <Badge className="bg-purple-100 text-purple-800">In Magazzino</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
   };
 
+  // --- 2. LOGICA RIPRISTINATA ---
   const getWarrantyStatus = (warrantyExpiry: string | null) => {
-    // ... (funzione invariata)
+    if (!warrantyExpiry) return <span className="text-gray-500">N/A</span>;
+    
+    const expiryDate = new Date(warrantyExpiry);
+    const today = new Date();
+    const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilExpiry < 0) {
+      return (
+        <>
+          <div className="text-sm text-gray-900">{expiryDate.toLocaleDateString('it-IT')}</div>
+          <div className="text-xs text-red-600">Scaduta</div>
+        </>
+      );
+    } else if (daysUntilExpiry <= 30) {
+      return (
+        <>
+          <div className="text-sm text-gray-900">{expiryDate.toLocaleDateString('it-IT')}</div>
+          <div className="text-xs text-yellow-600">{daysUntilExpiry} giorni rimanenti</div>
+        </>
+      );
+    } else {
+      const monthsRemaining = Math.floor(daysUntilExpiry / 30);
+      return (
+        <>
+          <div className="text-sm text-gray-900">{expiryDate.toLocaleDateString('it-IT')}</div>
+          <div className="text-xs text-green-600">{monthsRemaining} mesi rimanenti</div>
+        </>
+      );
+    }
   };
 
   if (isLoading) {
     return (
       <Card className="overflow-hidden">
-        {/* --- 2. USO DEL NUOVO COMPONENTE DI CARICAMENTO --- */}
         <LoadingIndicator />
       </Card>
     );
