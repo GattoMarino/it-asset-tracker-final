@@ -4,7 +4,53 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Laptop, Wrench, HardDrive, Server, Monitor } from "lucide-react";
 import type { Client } from "@shared/schema";
 
-const containerVariants = {
+// --- 1. AGGIUNTO IL COMPONENTE PER L'ANIMAZIONE DI CARICAMENTO ---
+const loadingContainerVariants = {
+  animate: {
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const loadingDotVariants = {
+  animate: {
+    y: [0, -10, 0],
+    transition: {
+      duration: 1.2,
+      ease: "easeInOut",
+      repeat: Infinity,
+    },
+  },
+};
+
+const LoadingIndicator = () => (
+  <div className="flex items-center justify-center py-16 text-center text-gray-500 text-lg">
+    <span className="mr-3">Caricamento</span>
+    <motion.div
+      className="flex h-6 items-center"
+      variants={loadingContainerVariants}
+      initial="initial"
+      animate="animate"
+    >
+      <motion.span
+        className="block w-3 h-3 bg-gray-500 rounded-full"
+        variants={loadingDotVariants}
+      />
+      <motion.span
+        className="block w-3 h-3 bg-gray-500 rounded-full mx-1.5"
+        variants={loadingDotVariants}
+      />
+      <motion.span
+        className="block w-3 h-3 bg-gray-500 rounded-full"
+        variants={loadingDotVariants}
+      />
+    </motion.div>
+  </div>
+);
+// -----------------------------------------------------------------
+
+const statsContainerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -14,7 +60,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const statsItemVariants = {
   hidden: { opacity: 0, x: 50 },
   visible: { opacity: 1, x: 0 },
 };
@@ -42,7 +88,6 @@ export default function ClientStats({ client }: ClientStatsProps) {
     return (
       <Card className="h-full">
         <CardHeader>
-          {/* Rimosso text-center */}
           <CardTitle>Statistiche Cliente</CardTitle>
         </CardHeader>
         <CardContent>
@@ -56,7 +101,6 @@ export default function ClientStats({ client }: ClientStatsProps) {
 
   return (
     <Card className="h-full">
-      {/* --- 1. Rimosso text-center per allineare il titolo a sinistra --- */}
       <CardHeader>
         <motion.div
           key={client.id}
@@ -69,12 +113,13 @@ export default function ClientStats({ client }: ClientStatsProps) {
         </motion.div>
       </CardHeader>
       <CardContent className="p-6">
+        {/* --- 2. SOSTITUITA LA SCRITTA CON L'ANIMAZIONE --- */}
         {isLoading ? (
-          <div className="text-center py-16 text-gray-500">Caricamento statistiche...</div>
+          <LoadingIndicator />
         ) : (
           <motion.div
             key={client.id}
-            variants={containerVariants}
+            variants={statsContainerVariants}
             initial="hidden"
             animate="visible"
             className="space-y-4"
@@ -130,8 +175,7 @@ interface StatRowProps {
 }
 
 const StatRow = ({ icon, label, value, iconBgClass, borderClass }: StatRowProps) => (
-  // --- 2. Aggiunto padding a destra (pr-6) per spostare il numero ---
-  <motion.div variants={itemVariants} className={`flex items-center justify-between py-3 pl-3 pr-6 rounded-xl border ${borderClass}`}>
+  <motion.div variants={statsItemVariants} className={`flex items-center justify-between py-3 pl-3 pr-4 rounded-xl border ${borderClass}`}>
     <div className="flex items-center text-gray-800 w-2/3">
       <div className={`mr-4 w-12 h-12 flex items-center justify-center rounded-full flex-shrink-0 ${iconBgClass}`}>
         {icon}
