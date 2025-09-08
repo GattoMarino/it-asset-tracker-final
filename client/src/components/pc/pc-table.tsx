@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,7 +13,23 @@ import {
 import { Eye, Edit, History } from "lucide-react";
 import type { ComputerWithClient } from "@shared/schema";
 
-// 1. Aggiungi onEditPC qui
+// --- 1. Definiamo le varianti per l'animazione ---
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05, // Ritardo breve tra ogni riga
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 }, // Parte da sotto
+  visible: { opacity: 1, y: 0 }, // Arriva in posizione
+};
+// ---------------------------------------------------
+
 interface PCTableProps {
   computers: ComputerWithClient[];
   isLoading: boolean;
@@ -20,7 +37,6 @@ interface PCTableProps {
   onEditPC: (pc: ComputerWithClient) => void;
 }
 
-// 2. Aggiungi onEditPC qui
 export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PCTableProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -95,9 +111,18 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
               <TableHead>Azioni</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          {/* --- 2. Applichiamo le animazioni a tbody e tr --- */}
+          <motion.tbody
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {computers.map((pc) => (
-              <TableRow key={pc.id} className="hover:bg-gray-50">
+              <motion.tr 
+                key={pc.id} 
+                variants={itemVariants}
+                className="hover:bg-gray-50"
+              >
                 <TableCell>
                   <div>
                     <div className="text-sm font-medium text-gray-900">{pc.serial}</div>
@@ -134,7 +159,6 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                     >
                       <Eye size={16} />
                     </Button>
-                    {/* 3. Aggiungi onClick qui */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -152,13 +176,13 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                     </Button>
                   </div>
                 </TableCell>
-              </TableRow>
+              </motion.tr>
             ))}
-          </TableBody>
+          </motion.tbody>
         </Table>
       </div>
       
-      {!computers.length && (
+      {!isLoading && !computers.length && (
         <div className="p-8 text-center text-gray-500">
           Nessun computer trovato con i filtri selezionati
         </div>
