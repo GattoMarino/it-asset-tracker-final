@@ -148,8 +148,8 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
               <TableHead>Assegnato a</TableHead>
               <TableHead>Stato</TableHead>
               <TableHead>Garanzia</TableHead>
-              {/* --- 1. Rimosso il testo "Azioni" --- */}
-              <TableHead className="text-right pr-6"></TableHead> 
+              {/* --- 1. Spostato a sinistra riducendo il padding destro (pr-4) --- */}
+              <TableHead className="text-right pr-4"></TableHead> 
             </TableRow>
           </TableHeader>
           <motion.tbody
@@ -189,7 +189,7 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                 <TableCell>
                   {getWarrantyStatus(pc.warrantyExpiry)}
                 </TableCell>
-                <TableCell className="text-right pr-6">
+                <TableCell className="text-right pr-4"> {/* --- 1. Spostato a sinistra riducendo il padding destro (pr-4) --- */}
                   <div className="flex justify-end space-x-2">
                     <Button
                       variant="ghost"
@@ -198,7 +198,7 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                       className="text-primary hover:text-blue-800"
                     >
                       {/* --- 2. Icona ingrandita --- */}
-                      <Eye size={22} />
+                      <Eye size={24} />
                     </Button>
                     <Button
                       variant="ghost"
@@ -207,7 +207,7 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                       onClick={() => onEditPC(pc)}
                     >
                       {/* --- 2. Icona ingrandita --- */}
-                      <Edit size={22} />
+                      <Edit size={24} />
                     </Button>
                   </div>
                 </TableCell>
