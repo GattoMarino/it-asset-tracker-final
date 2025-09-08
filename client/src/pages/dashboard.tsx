@@ -14,14 +14,14 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
 
+// --- COMPONENTE PER L'ANIMAZIONE DEI NUMERI ---
 function AnimatedCounter({ value }: { value: number }) {
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) => Math.round(latest));
 
   useEffect(() => {
     const controls = animate(count, value, {
-      // --- MODIFICA QUI ---
-      duration: 1.0, // Velocità aumentata (da 1.5 a 1.0 secondi)
+      duration: 1.0,
       ease: "easeOut",
     });
     return controls.stop;
@@ -29,6 +29,23 @@ function AnimatedCounter({ value }: { value: number }) {
 
   return <motion.span>{rounded}</motion.span>;
 }
+
+// --- 1. VARIANTI PER L'ANIMAZIONE DELLA LISTA ATTIVITÀ ---
+const listContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1, // Aumenta leggermente il ritardo per un effetto più evidente
+    },
+  },
+};
+
+const listItemVariants = {
+  hidden: { opacity: 0, y: 20 }, // Parte dal basso
+  visible: { opacity: 1, y: 0 }, // Arriva nella sua posizione
+};
+// ---------------------------------------------------------
 
 export default function Dashboard() {
   const { data: stats } = useQuery({
@@ -76,6 +93,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* ... Card delle statistiche animate ... */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -91,7 +109,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -107,7 +124,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -123,7 +139,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -148,9 +163,19 @@ export default function Dashboard() {
           </div>
           <CardContent className="p-6">
             {recentActivity?.length ? (
-              <div className="space-y-4">
+              // --- 2. APPLICAZIONE DELLE ANIMAZIONI ---
+              <motion.div 
+                className="space-y-4"
+                variants={listContainerVariants}
+                initial="hidden"
+                animate="visible"
+              >
                 {recentActivity.slice(0, 5).map((activity: any) => (
-                  <div key={activity.id} className="flex items-center py-3 border-b border-gray-100 last:border-b-0">
+                  <motion.div 
+                    key={activity.id} 
+                    variants={listItemVariants}
+                    className="flex items-center py-3 border-b border-gray-100 last:border-b-0"
+                  >
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                       {getActivityIcon(activity.action)}
                     </div>
@@ -163,15 +188,16 @@ export default function Dashboard() {
                         })}
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
               <p className="text-gray-500 text-center py-4">Nessuna attività recente</p>
             )}
           </CardContent>
         </Card>
 
+        {/* La card degli avvisi garanzia rimane invariata */}
         <Card>
           <div className="p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800">Avvisi Garanzia</h3>
