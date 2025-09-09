@@ -26,8 +26,6 @@ export const computers = pgTable("computers", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// ... (il resto delle definizioni delle tabelle e delle relazioni rimane invariato) ...
-
 export const computerHistory = pgTable("computer_history", {
   id: serial("id").primaryKey(),
   computerId: integer("computer_id").references(() => computers.id).notNull(),
@@ -94,9 +92,6 @@ export const insertClientSchema = createInsertSchema(clients).omit({
   createdAt: true,
 });
 
-// --- MODIFICA QUI ---
-// Separiamo lo schema base e poi lo estendiamo per definire `type` come un enum.
-// Questo garantisce che solo i valori corretti possano essere inseriti.
 const baseInsertComputerSchema = createInsertSchema(computers).omit({
   id: true,
   createdAt: true,
@@ -105,8 +100,9 @@ const baseInsertComputerSchema = createInsertSchema(computers).omit({
 
 export const insertComputerSchema = baseInsertComputerSchema.extend({
   type: z.enum(['desktop', 'laptop', 'workstation', 'server', 'tablet']),
+  // Aggiunta la conversione automatica per la data di garanzia
+  warrantyExpiry: z.coerce.date().nullable().optional(),
 });
-// --- FINE MODIFICA ---
 
 export const insertComputerHistorySchema = createInsertSchema(computerHistory).omit({
   id: true,
