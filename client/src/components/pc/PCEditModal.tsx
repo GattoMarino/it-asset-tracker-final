@@ -1,5 +1,3 @@
-// client/src/components/pc/PCEditModal.tsx
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +6,7 @@ import { z } from "zod";
 import { insertComputerSchema, type ComputerWithClient } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
+import { it } from "date-fns/locale/it"; // --- 1. CORREZIONE: Importazione della lingua italiana
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -70,13 +69,13 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
   });
 
   useEffect(() => {
-    if (pc) {
+    if (pc && isOpen) {
       form.reset({
         ...pc,
         warrantyExpiry: pc.warrantyExpiry ? new Date(pc.warrantyExpiry) : null,
       });
     }
-  }, [pc, form, isOpen]); // Aggiunto isOpen per resettare il form ogni volta che si apre
+  }, [pc, isOpen, form]);
 
   const updateMutation = useMutation({
     mutationFn: async (values: EditComputerSchema) => {
@@ -106,12 +105,11 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
   });
 
-
   const onSubmit = (values: EditComputerSchema) => {
     updateMutation.mutate(values);
   };
 
-  if (!pc) return null; // Aggiunto per sicurezza
+  if (!pc) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -123,8 +121,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* --- MODIFICA QUI: Aggiunta la classe 'items-end' per allineare i campi --- */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
             <div className="grid grid-cols-2 gap-4 items-end">
               <FormField
                 control={form.control}
@@ -136,7 +133,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleziona uno stato" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="active">Attivo</SelectItem>
@@ -167,7 +164,8 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                             )}
                           >
                             {field.value ? (
-                              format(new Date(field.value), "PPP", { locale: require('date-fns/locale/it') })
+                              // --- 2. CORREZIONE: Usata la variabile 'it' importata ---
+                              format(new Date(field.value), "PPP", { locale: it })
                             ) : (
                               <span>Scegli una data</span>
                             )}
