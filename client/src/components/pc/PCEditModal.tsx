@@ -44,7 +44,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Usiamo z.coerce.date() per la conversione automatica, come nello schema principale
 const editComputerSchema = insertComputerSchema.partial().extend({
   warrantyExpiry: z.coerce.date().optional().nullable(),
 });
@@ -55,6 +54,18 @@ interface PCEditModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// --- 1. NUOVA FUNZIONE PER FORMATTARE LA DATA IN MODO SICURO ---
+const formatDateForInput = (date: any): string => {
+  if (!date) return '';
+  // Controlla se è una data valida
+  const d = new Date(date);
+  if (d instanceof Date && !isNaN(d.getTime())) {
+    return d.toISOString().split('T')[0];
+  }
+  return '';
+};
+// -----------------------------------------------------------------
 
 export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
   const queryClient = useQueryClient();
@@ -143,7 +154,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                   </FormItem>
                 )}
               />
-              {/* --- RIPRISTINATO IL CAMPO DATA SEMPLICE E FUNZIONANTE --- */}
               <FormField
                 control={form.control}
                 name="warrantyExpiry"
@@ -151,9 +161,10 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                   <FormItem>
                     <FormLabel>Scadenza Garanzia</FormLabel>
                     <FormControl>
+                      {/* --- 2. USO DELLA NUOVA FUNZIONE SICURA --- */}
                       <Input 
                         type="date"
-                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                        value={formatDateForInput(field.value)}
                         onChange={field.onChange}
                       />
                     </FormControl>
