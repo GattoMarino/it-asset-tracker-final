@@ -28,7 +28,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Form,
@@ -77,7 +76,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
         warrantyExpiry: pc.warrantyExpiry ? new Date(pc.warrantyExpiry) : null,
       });
     }
-  }, [pc, form]);
+  }, [pc, form, isOpen]); // Aggiunto isOpen per resettare il form ogni volta che si apre
 
   const updateMutation = useMutation({
     mutationFn: async (values: EditComputerSchema) => {
@@ -87,6 +86,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
+      queryClient.invalidateQueries({ queryKey: ["clientStats", pc?.clientId] });
       console.log("PC aggiornato con successo!");
       onClose();
     },
@@ -99,6 +99,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
+      queryClient.invalidateQueries({ queryKey: ["clientStats", pc?.clientId] });
       console.log("PC eliminato con successo!");
       onClose();
       setDeleteAlertOpen(false);
@@ -109,6 +110,8 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
   const onSubmit = (values: EditComputerSchema) => {
     updateMutation.mutate(values);
   };
+
+  if (!pc) return null; // Aggiunto per sicurezza
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -121,7 +124,8 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            {/* --- MODIFICA QUI: Aggiunta la classe 'items-end' per allineare i campi --- */}
+            <div className="grid grid-cols-2 gap-4 items-end">
               <FormField
                 control={form.control}
                 name="status"
@@ -163,7 +167,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                             )}
                           >
                             {field.value ? (
-                              format(new Date(field.value), "PPP")
+                              format(new Date(field.value), "PPP", { locale: require('date-fns/locale/it') })
                             ) : (
                               <span>Scegli una data</span>
                             )}
@@ -213,7 +217,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-between w-full">
+            <DialogFooter className="!justify-between pt-4 sm:pt-6">
               <AlertDialog open={isDeleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="destructive">
