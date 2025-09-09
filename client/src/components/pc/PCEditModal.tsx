@@ -5,10 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { insertComputerSchema, type ComputerWithClient } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { format } from "date-fns";
-import { it } from "date-fns/locale/it";
-import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Trash2 } from "lucide-react";
 
 import {
   Dialog,
@@ -46,11 +43,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 
+// Usiamo z.coerce.date() per la conversione automatica, come nello schema principale
 const editComputerSchema = insertComputerSchema.partial().extend({
-  warrantyExpiry: z.date().optional().nullable(),
+  warrantyExpiry: z.coerce.date().optional().nullable(),
 });
 type EditComputerSchema = z.infer<typeof editComputerSchema>;
 
@@ -133,7 +129,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleziona uno stato" />
-                        </SelectTrigger> {/* --- TAG DI CHIUSURA CORRETTO --- */}
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="active">Attivo</SelectItem>
@@ -147,41 +143,20 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                   </FormItem>
                 )}
               />
+              {/* --- RIPRISTINATO IL CAMPO DATA SEMPLICE E FUNZIONANTE --- */}
               <FormField
                 control={form.control}
                 name="warrantyExpiry"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>Scadenza Garanzia</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(new Date(field.value), "PPP", { locale: it })
-                            ) : (
-                              <span>Scegli una data</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value ? new Date(field.value) : undefined}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date("1900-01-01")}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <Input 
+                        type="date"
+                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
