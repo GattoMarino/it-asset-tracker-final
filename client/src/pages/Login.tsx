@@ -72,10 +72,9 @@ export function Login() {
 
   return (
     <div className="grid lg:grid-cols-2 min-h-screen"> 
-      {/* MODIFICA QUI: AGGIUNTE CLASSI PER SFUMATURA */}
+      {/* --- MODIFICA QUI: Sfumatura più scura e d'impatto --- */}
       <div className="hidden lg:flex items-center justify-center p-8 
-                      bg-gradient-to-br from-gray-200 to-gray-50"> {/* Esempio di sfumatura grigia */}
-        {/* Immagine PNG sulla sinistra */}
+                      bg-gradient-to-br from-slate-900 to-slate-700">
         <img 
           src={loginImage} 
           alt="Login Illustration" 
