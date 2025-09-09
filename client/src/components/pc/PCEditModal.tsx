@@ -6,7 +6,7 @@ import { z } from "zod";
 import { insertComputerSchema, type ComputerWithClient } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { it } from "date-fns/locale/it"; // --- 1. CORREZIONE: Importazione della lingua italiana
+import { it } from "date-fns/locale/it";
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -133,7 +133,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleziona uno stato" />
-                        </Trigger>
+                        </SelectTrigger> {/* --- TAG DI CHIUSURA CORRETTO --- */}
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="active">Attivo</SelectItem>
@@ -164,7 +164,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                             )}
                           >
                             {field.value ? (
-                              // --- 2. CORREZIONE: Usata la variabile 'it' importata ---
                               format(new Date(field.value), "PPP", { locale: it })
                             ) : (
                               <span>Scegli una data</span>
