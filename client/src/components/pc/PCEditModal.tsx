@@ -1,3 +1,5 @@
+// client/src/components/pc/PCEditModal.tsx
+
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -5,7 +7,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { insertComputerSchema, type ComputerWithClient } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { Trash2 } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import {
   Dialog,
@@ -24,6 +28,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Form,
@@ -43,9 +48,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 const editComputerSchema = insertComputerSchema.partial().extend({
-  warrantyExpiry: z.coerce.date().optional().nullable(),
+  warrantyExpiry: z.date().optional().nullable(),
 });
 type EditComputerSchema = z.infer<typeof editComputerSchema>;
 
@@ -54,18 +61,6 @@ interface PCEditModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-// --- 1. NUOVA FUNZIONE PER FORMATTARE LA DATA IN MODO SICURO ---
-const formatDateForInput = (date: any): string => {
-  if (!date) return '';
-  // Controlla se è una data valida
-  const d = new Date(date);
-  if (d instanceof Date && !isNaN(d.getTime())) {
-    return d.toISOString().split('T')[0];
-  }
-  return '';
-};
-// -----------------------------------------------------------------
 
 export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
   const queryClient = useQueryClient();
@@ -76,13 +71,13 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
   });
 
   useEffect(() => {
-    if (pc && isOpen) {
+    if (pc) {
       form.reset({
         ...pc,
         warrantyExpiry: pc.warrantyExpiry ? new Date(pc.warrantyExpiry) : null,
       });
     }
-  }, [pc, isOpen, form]);
+  }, [pc, form]);
 
   const updateMutation = useMutation({
     mutationFn: async (values: EditComputerSchema) => {
@@ -92,7 +87,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      queryClient.invalidateQueries({ queryKey: ["clientStats", pc?.clientId] });
       console.log("PC aggiornato con successo!");
       onClose();
     },
@@ -105,18 +99,16 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      queryClient.invalidateQueries({ queryKey: ["clientStats", pc?.clientId] });
       console.log("PC eliminato con successo!");
       onClose();
       setDeleteAlertOpen(false);
     },
   });
 
+
   const onSubmit = (values: EditComputerSchema) => {
     updateMutation.mutate(values);
   };
-
-  if (!pc) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -128,8 +120,8 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4 items-end">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="status"
@@ -158,16 +150,37 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                 control={form.control}
                 name="warrantyExpiry"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Scadenza Garanzia</FormLabel>
-                    <FormControl>
-                      {/* --- 2. USO DELLA NUOVA FUNZIONE SICURA --- */}
-                      <Input 
-                        type="date"
-                        value={formatDateForInput(field.value)}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Scegli una data</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date("1900-01-01")}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -200,7 +213,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                 </FormItem>
               )}
             />
-            <DialogFooter className="!justify-between pt-4 sm:pt-6">
+            <DialogFooter className="flex justify-between w-full">
               <AlertDialog open={isDeleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="destructive">
