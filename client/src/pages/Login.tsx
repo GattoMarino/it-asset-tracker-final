@@ -1,12 +1,8 @@
-// client/src/pages/Login.tsx
-
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-
-// Importa i componenti UI che useremo da shadcn/ui
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,42 +16,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 
-// 1. Definiamo lo schema di validazione con Zod
 const loginSchema = z.object({
   email: z.string().email({ message: "Email non valida" }),
   password: z.string().min(1, { message: "La password è obbligatoria" }),
 });
 
-// Inferiamo il tipo dal nostro schema Zod
 type LoginSchema = z.infer<typeof loginSchema>;
 
-// Funzione per effettuare la chiamata API di login
+// Modificato per gestire la risposta 2FA
 async function loginUser(data: LoginSchema) {
   const res = await fetch("/api/auth/login", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
-    credentials: "include", // Invia i cookie con la richiesta
+    credentials: "include",
   });
 
+  const responseData = await res.json();
   if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || "Login fallito");
+    throw new Error(responseData.message || "Login fallito");
   }
-
-  return res.json();
+  return responseData; // Restituisce i dati della risposta (es. { twoFactorRequired: true, email: '...' })
 }
 
 export function Login() {
-  // 2. State per gestire i messaggi di errore
   const [error, setError] = useState<string | null>(null);
-  
-  // Hook per la navigazione da wouter
   const [, setLocation] = useLocation();
 
-  // 3. usiamo React Hook Form con Zod per la validazione
   const {
     register,
     handleSubmit,
@@ -64,28 +51,30 @@ export function Login() {
     resolver: zodResolver(loginSchema),
   });
 
-  // 4. Usiamo TanStack Query per gestire la chiamata API
+  // Modificato per reindirizzare alla pagina 2FA
   const mutation = useMutation({
     mutationFn: loginUser,
-    onSuccess: () => {
-      // Se il login ha successo, reindirizza alla dashboard
-      setLocation("/");
+    onSuccess: (data) => {
+      // Se il backend richiede la 2FA, reindirizza alla pagina di verifica
+      if (data.twoFactorRequired) {
+        setLocation(`/verify-2fa?email=${encodeURIComponent(data.email)}`);
+      } else {
+        // Fallback nel caso in cui la 2FA non sia richiesta
+        setLocation("/");
+      }
     },
     onError: (err) => {
-      // Se c'è un errore, mostralo all'utente
       setError(err.message);
     },
   });
 
-  // 5. Funzione che viene chiamata al submit del form
   const onSubmit = (data: LoginSchema) => {
-    setError(null); // Resetta l'errore precedente
-    mutation.mutate(data); // Esegui la chiamata API
+    setError(null);
+    mutation.mutate(data);
   };
 
-  // 6. JSX per renderizzare il form
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center h-screen bg-gray-100">
       <Card className="w-[350px]">
         <CardHeader>
           <CardTitle>Login</CardTitle>
