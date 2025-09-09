@@ -15,8 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-// --- Importa il tuo file PNG ---
-import loginImage from "@/assets/login-image.png"; // Assicurati che il nome e il percorso siano corretti
+import loginImage from "@/assets/login-image.png"; 
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Email non valida" }),
@@ -73,16 +72,18 @@ export function Login() {
 
   return (
     <div className="grid lg:grid-cols-2 min-h-screen"> 
-      <div className="hidden lg:flex items-center justify-center bg-gray-100 p-8">
+      {/* MODIFICA QUI: AGGIUNTE CLASSI PER SFUMATURA */}
+      <div className="hidden lg:flex items-center justify-center p-8 
+                      bg-gradient-to-br from-gray-200 to-gray-50"> {/* Esempio di sfumatura grigia */}
         {/* Immagine PNG sulla sinistra */}
         <img 
           src={loginImage} 
           alt="Login Illustration" 
-          className="max-w-full max-h-full object-contain" // object-contain per mantenere le proporzioni senza tagliare
+          className="max-w-full max-h-full object-contain" 
         />
       </div>
       
-      <div className="flex items-center justify-center p-8 lg:p-12 bg-white"> {/* Aggiunto bg-white al div del form */}
+      <div className="flex items-center justify-center p-8 lg:p-12 bg-white">
         <Card className="w-full max-w-[350px]">
           <CardHeader>
             <CardTitle>Login</CardTitle>
