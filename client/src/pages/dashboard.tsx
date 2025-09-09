@@ -9,12 +9,13 @@ import {
   Wrench, 
   AlertTriangle,
   Edit,
-  Plus
+  Plus,
+  User,
+  Building
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
 
-// --- COMPONENTE PER L'ANIMAZIONE DEI NUMERI ---
 function AnimatedCounter({ value }: { value: number }) {
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) => Math.round(latest));
@@ -30,22 +31,20 @@ function AnimatedCounter({ value }: { value: number }) {
   return <motion.span>{rounded}</motion.span>;
 }
 
-// --- 1. VARIANTI PER L'ANIMAZIONE DELLA LISTA ATTIVITÀ ---
 const listContainerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1, // Aumenta leggermente il ritardo per un effetto più evidente
+      staggerChildren: 0.1,
     },
   },
 };
 
 const listItemVariants = {
-  hidden: { opacity: 0, y: 20 }, // Parte dal basso
-  visible: { opacity: 1, y: 0 }, // Arriva nella sua posizione
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 };
-// ---------------------------------------------------------
 
 export default function Dashboard() {
   const { data: stats } = useQuery({
@@ -93,7 +92,6 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* ... Card delle statistiche animate ... */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -146,7 +144,8 @@ export default function Dashboard() {
                 <AlertTriangle className="text-red-600" size={24} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Garanzia Scadente</p>
+                {/* --- 3. Titolo della Card corretto --- */}
+                <p className="text-sm font-medium text-gray-600">Garanzie in Scadenza</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats ? <AnimatedCounter value={Number(stats.expiringSoon) || 0} /> : 0}
                 </p>
@@ -163,7 +162,6 @@ export default function Dashboard() {
           </div>
           <CardContent className="p-6">
             {recentActivity?.length ? (
-              // --- 2. APPLICAZIONE DELLE ANIMAZIONI ---
               <motion.div 
                 className="space-y-4"
                 variants={listContainerVariants}
@@ -197,31 +195,46 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* La card degli avvisi garanzia rimane invariata */}
         <Card>
           <div className="p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800">Avvisi Garanzia</h3>
           </div>
           <CardContent className="p-6">
             {warrantyAlerts?.length ? (
-              <div className="space-y-4">
+              // --- 1. Aggiunta animazione alla lista ---
+              <motion.div 
+                className="space-y-2"
+                variants={listContainerVariants}
+                initial="hidden"
+                animate="visible"
+              >
                 {warrantyAlerts.slice(0, 5).map((alert: any) => (
-                  <div key={alert.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
-                        <AlertTriangle className="text-red-600" size={16} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{alert.serial}</p>
+                  <motion.div 
+                    key={alert.id} 
+                    variants={listItemVariants}
+                    className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
+                  >
+                    {/* --- 2. Aggiunte le informazioni richieste --- */}
+                    <div className="flex items-center text-sm w-full">
+                      <div className="w-1/3">
+                        <p className="font-medium text-gray-800">{alert.serial}</p>
                         <p className="text-xs text-gray-500">
                           Scade il {new Date(alert.warrantyExpiry).toLocaleDateString('it-IT')}
                         </p>
                       </div>
+                      <div className="w-1/3 flex items-center">
+                        <User className="text-gray-400 mr-2" size={14} />
+                        <span className="text-gray-600">{alert.assignedTo || 'Non assegnato'}</span>
+                      </div>
+                      <div className="w-1/3 flex items-center">
+                        <Building className="text-gray-400 mr-2" size={14} />
+                        <span className="text-gray-600">{alert.client.name}</span>
+                      </div>
                     </div>
                     {getWarrantyBadge(alert.warrantyExpiry)}
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
               <p className="text-gray-500 text-center py-4">Nessun avviso garanzia</p>
             )}
