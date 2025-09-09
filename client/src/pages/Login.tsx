@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+// --- Importa il tuo file PNG ---
+import loginImage from "@/assets/login-image.png"; // Assicurati che il nome e il percorso siano corretti
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Email non valida" }),
@@ -23,7 +25,6 @@ const loginSchema = z.object({
 
 type LoginSchema = z.infer<typeof loginSchema>;
 
-// Modificato per gestire la risposta 2FA
 async function loginUser(data: LoginSchema) {
   const res = await fetch("/api/auth/login", {
     method: "POST",
@@ -36,7 +37,7 @@ async function loginUser(data: LoginSchema) {
   if (!res.ok) {
     throw new Error(responseData.message || "Login fallito");
   }
-  return responseData; // Restituisce i dati della risposta (es. { twoFactorRequired: true, email: '...' })
+  return responseData;
 }
 
 export function Login() {
@@ -51,15 +52,12 @@ export function Login() {
     resolver: zodResolver(loginSchema),
   });
 
-  // Modificato per reindirizzare alla pagina 2FA
   const mutation = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      // Se il backend richiede la 2FA, reindirizza alla pagina di verifica
       if (data.twoFactorRequired) {
         setLocation(`/verify-2fa?email=${encodeURIComponent(data.email)}`);
       } else {
-        // Fallback nel caso in cui la 2FA non sia richiesta
         setLocation("/");
       }
     },
@@ -74,35 +72,46 @@ export function Login() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>Accedi al tuo account per continuare.</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" placeholder="tua@email.com" {...register("email")} />
-                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+    <div className="grid lg:grid-cols-2 min-h-screen"> 
+      <div className="hidden lg:flex items-center justify-center bg-gray-100 p-8">
+        {/* Immagine PNG sulla sinistra */}
+        <img 
+          src={loginImage} 
+          alt="Login Illustration" 
+          className="max-w-full max-h-full object-contain" // object-contain per mantenere le proporzioni senza tagliare
+        />
+      </div>
+      
+      <div className="flex items-center justify-center p-8 lg:p-12 bg-white"> {/* Aggiunto bg-white al div del form */}
+        <Card className="w-full max-w-[350px]">
+          <CardHeader>
+            <CardTitle>Login</CardTitle>
+            <CardDescription>Accedi al tuo account per continuare.</CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <CardContent>
+              <div className="grid w-full items-center gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" placeholder="tua@email.com" {...register("email")} />
+                  {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="password">Password</Label>
+                  <Input id="password" type="password" {...register("password")} />
+                  {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+                </div>
               </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" {...register("password")} />
-                {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
-              </div>
-            </div>
-             {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending ? "Accesso in corso..." : "Accedi"}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+              {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" className="w-full" disabled={mutation.isPending}>
+                {mutation.isPending ? "Accesso in corso..." : "Accedi"}
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
     </div>
   );
 }
