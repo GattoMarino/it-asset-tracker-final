@@ -4,8 +4,10 @@ import { storage } from "./storage.js";
 import { insertClientSchema, insertComputerSchema, insertComputerActivitySchema } from "../shared/schema.js";
 import { z } from "zod";
 import bcrypt from "bcrypt";
+// --- IMPORT AGGIUNTI PER 2FA ---
+import { randomInt } from "crypto";
+import { sendTwoFactorCode } from "./email.js";
 
-// Middleware per controllare se l'utente è autenticato
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   // @ts-ignore
   if (req.session.userId) {
@@ -15,7 +17,7 @@ const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // --- ROTTE DI AUTENTICAZIONE (NON PROTETTE) ---
+  // --- ROTTE DI AUTENTICAZIONE ---
   app.post("/api/auth/register", async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -37,41 +39,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // --- ROTTA LOGIN SOSTITUITA CON LOGICA 2FA ---
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      if (!email || !password) {
-        return res.status(400).json({ message: "Email e password sono obbligatorie" });
-      }
       const user = await storage.getUserByEmail(email);
-      if (!user) {
-        return res.status(401).json({ message: "Credenziali non valide" });
-      }
+      if (!user) return res.status(401).json({ message: "Credenziali non valide" });
       const isPasswordValid = await bcrypt.compare(password, user.hashedPassword);
-      if (!isPasswordValid) {
-        return res.status(401).json({ message: "Credenziali non valide" });
-      }
+      if (!isPasswordValid) return res.status(401).json({ message: "Credenziali non valide" });
+
+      const code = randomInt(100000, 999999).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // Scadenza 10 minuti
+      const hashedCode = await bcrypt.hash(code, 10);
       
-      // @ts-ignore
-      req.session.userId = user.id;
+      await storage.setTwoFactorCodeForUser(user.id, hashedCode, expiresAt);
+      await sendTwoFactorCode(user.email, code);
 
-      // ---- LA CORREZIONE FONDAMENTALE ----
-      // Attendiamo che la sessione sia salvata nel DB prima di rispondere.
-      req.session.save((err) => {
-        if (err) {
-          console.error("Errore nel salvataggio della sessione:", err);
-          return res.status(500).json({ message: "Errore durante il login" });
-        }
-        res.status(200).json({ id: user.id, email: user.email });
-      });
-      // ---------------------------------
-
+      res.status(200).json({ twoFactorRequired: true, email: user.email });
     } catch (error) {
-      console.error(error);
+      console.error("Errore durante il login:", error);
       res.status(500).json({ message: "Errore durante il login" });
     }
   });
   
+  // --- NUOVA ROTTA AGGIUNTA PER VERIFICA 2FA ---
+  app.post("/api/auth/verify-2fa", async (req, res) => {
+    try {
+      const { email, code } = req.body;
+      const user = await storage.getUserByEmail(email);
+      if (!user?.twoFactorCode || !user.twoFactorCodeExpiresAt || new Date() > user.twoFactorCodeExpiresAt) {
+        return res.status(401).json({ message: "Codice non valido o scaduto. Riprova il login." });
+      }
+
+      const isCodeValid = await bcrypt.compare(code, user.twoFactorCode);
+      if (!isCodeValid) {
+        return res.status(401).json({ message: "Codice non valido." });
+      }
+
+      // @ts-ignore
+      req.session.userId = user.id;
+      await storage.clearTwoFactorCode(user.id);
+
+      req.session.save((err) => {
+        if (err) {
+          console.error("Errore nel salvataggio della sessione:", err);
+          return res.status(500).json({ message: "Errore nel salvataggio della sessione" });
+        }
+        res.status(200).json({ id: user.id, email: user.email });
+      });
+    } catch (error) {
+      console.error("Errore durante la verifica 2FA:", error);
+      res.status(500).json({ message: "Errore durante la verifica" });
+    }
+  });
+
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy((err) => {
       if (err) {
@@ -92,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ id: user.id, email: user.email });
   });
 
-  // --- ROTTE CLIENTI (PROTETTE) ---
+  // --- ROTTE CLIENTI (INVARIATE) ---
   app.get("/api/clients", isAuthenticated, async (req, res) => {
     try {
       const clients = await storage.getAllClients();
@@ -139,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // --- ROTTE COMPUTER (PROTETTE) ---
+  // --- ROTTE COMPUTER (INVARIATE) ---
   app.get("/api/computers", isAuthenticated, async (req, res) => {
     try {
       const { query, clientId, status, brand } = req.query;
@@ -251,7 +272,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // --- ROTTE ATTIVITÀ COMPUTER (PROTETTE) ---
   app.post("/api/computers/:id/activities", isAuthenticated, async (req, res) => {
     try {
       const computerId = parseInt(req.params.id);
@@ -281,7 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // --- ROTTE DASHBOARD (PROTETTE) ---
+  // --- ROTTE DASHBOARD (INVARIATE) ---
   app.get("/api/dashboard/stats", isAuthenticated, async (req, res) => {
     try {
       const stats = await storage.getDashboardStats();

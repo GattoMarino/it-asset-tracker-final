@@ -16,10 +16,10 @@ export const computers = pgTable("computers", {
   serial: text("serial").notNull().unique(),
   brand: text("brand").notNull(),
   model: text("model").notNull(),
-  type: text("type").notNull(), // desktop, laptop, workstation, server, tablet
+  type: text("type").notNull(),
   clientId: integer("client_id").references(() => clients.id).notNull(),
   assignedTo: text("assigned_to"),
-  status: text("status").notNull().default("active"), // active, maintenance, dismissed, preparation, storage
+  status: text("status").notNull().default("active"),
   warrantyExpiry: timestamp("warranty_expiry"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -49,6 +49,9 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   hashedPassword: text("hashed_password").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  // --- MODIFICA QUI: Aggiunti i campi per la 2FA ---
+  twoFactorCode: text("two_factor_code"),
+  twoFactorCodeExpiresAt: timestamp("two_factor_code_expires_at"),
 });
 
 export const userSessions = pgTable("user_sessions", {
@@ -100,7 +103,6 @@ const baseInsertComputerSchema = createInsertSchema(computers).omit({
 
 export const insertComputerSchema = baseInsertComputerSchema.extend({
   type: z.enum(['desktop', 'laptop', 'workstation', 'server', 'tablet']),
-  // Aggiunta la conversione automatica per la data di garanzia
   warrantyExpiry: z.coerce.date().nullable().optional(),
 });
 

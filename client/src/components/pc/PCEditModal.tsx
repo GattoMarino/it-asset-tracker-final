@@ -76,7 +76,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
         warrantyExpiry: pc.warrantyExpiry ? new Date(pc.warrantyExpiry) : null,
       });
     }
-  }, [pc, form, isOpen]); // Aggiunto isOpen per resettare correttamente quando si riapre
+  }, [pc, form, isOpen]);
 
   const updateMutation = useMutation({
     mutationFn: async (values: EditComputerSchema) => {
@@ -120,7 +120,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            {/* --- MODIFICA QUI: Aggiunta la classe 'items-end' per l'allineamento verticale --- */}
             <div className="grid grid-cols-2 gap-4 items-end">
               <FormField
                 control={form.control}
@@ -130,7 +129,8 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                     <FormLabel>Stato</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
-                        <SelectTrigger>
+                        {/* --- 1. Aggiunta altezza fissa h-10 --- */}
+                        <SelectTrigger className="h-10">
                           <SelectValue placeholder="Seleziona uno stato" />
                         </SelectTrigger>
                       </FormControl>
@@ -158,7 +158,8 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "pl-3 text-left font-normal",
+                              // --- 2. Aggiunta altezza fissa h-10 ---
+                              "pl-3 text-left font-normal h-10",
                               !field.value && "text-muted-foreground"
                             )}
                           >

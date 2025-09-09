@@ -21,12 +21,10 @@ import { db } from "./db.js";
 import { eq, desc, and, ilike, or, sql, count } from "drizzle-orm";
 
 export interface IStorage {
-  // ... interfacce ...
   deleteComputer(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // --- FUNZIONE CORRETTA PER LE STATISTICHE DELLA DASHBOARD ---
   async getDashboardStats(): Promise<{
     totalPCs: number;
     activePCs: number;
@@ -52,8 +50,6 @@ export class DatabaseStorage implements IStorage {
       expiringSoon: expiringResult[0]?.value || 0,
     };
   }
-
-  // --- IL RESTO DEL FILE RIMANE INVARIATO ---
 
   async deleteComputer(id: number): Promise<void> {
     await db.delete(computerHistory).where(eq(computerHistory.computerId, id));
@@ -154,7 +150,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(computers.id, id))
       .returning();
     
-    // ... logica di history ...
     return computer;
   }
 
@@ -270,6 +265,19 @@ export class DatabaseStorage implements IStorage {
   async getUserById(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
+  }
+
+  // --- FUNZIONI AGGIUNTE PER 2FA ---
+  async setTwoFactorCodeForUser(userId: number, code: string, expiresAt: Date): Promise<void> {
+    await db.update(users)
+      .set({ twoFactorCode: code, twoFactorCodeExpiresAt: expiresAt })
+      .where(eq(users.id, userId));
+  }
+
+  async clearTwoFactorCode(userId: number): Promise<void> {
+    await db.update(users)
+      .set({ twoFactorCode: null, twoFactorCodeExpiresAt: null })
+      .where(eq(users.id, userId));
   }
 }
 
