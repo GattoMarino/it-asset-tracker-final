@@ -1,5 +1,3 @@
-// client/src/components/pc/PCEditModal.tsx
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +6,7 @@ import { z } from "zod";
 import { insertComputerSchema, type ComputerWithClient } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
+import { it } from "date-fns/locale/it";
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -77,7 +76,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
         warrantyExpiry: pc.warrantyExpiry ? new Date(pc.warrantyExpiry) : null,
       });
     }
-  }, [pc, form]);
+  }, [pc, form, isOpen]); // Aggiunto isOpen per resettare correttamente quando si riapre
 
   const updateMutation = useMutation({
     mutationFn: async (values: EditComputerSchema) => {
@@ -87,7 +86,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      console.log("PC aggiornato con successo!");
+      queryClient.invalidateQueries({ queryKey: ["clientStats", pc?.clientId] });
       onClose();
     },
   });
@@ -99,7 +98,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      console.log("PC eliminato con successo!");
+      queryClient.invalidateQueries({ queryKey: ["clientStats", pc?.clientId] });
       onClose();
       setDeleteAlertOpen(false);
     },
@@ -120,8 +119,9 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            {/* --- MODIFICA QUI: Aggiunta la classe 'items-end' per l'allineamento verticale --- */}
+            <div className="grid grid-cols-2 gap-4 items-end">
               <FormField
                 control={form.control}
                 name="status"
@@ -163,7 +163,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                             )}
                           >
                             {field.value ? (
-                              format(new Date(field.value), "PPP")
+                              format(new Date(field.value), "PPP", { locale: it })
                             ) : (
                               <span>Scegli una data</span>
                             )}
@@ -213,7 +213,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex justify-between w-full">
+            <DialogFooter className="!justify-between pt-4 sm:pt-6">
               <AlertDialog open={isDeleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="destructive">
