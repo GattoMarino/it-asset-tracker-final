@@ -127,6 +127,11 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
               <CardContent className="p-6">
                 <h4 className="text-lg font-medium text-gray-800 mb-4">Informazioni Hardware</h4>
                 <div className="space-y-3">
+                  {/* --- MODIFICA QUI: Aggiunto Hostname --- */}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Hostname:</span>
+                    <span className="font-medium">{pc.hostname || "N/D"}</span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Seriale:</span>
                     <span className="font-medium">{pc.serial}</span>
