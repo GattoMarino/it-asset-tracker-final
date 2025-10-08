@@ -142,15 +142,15 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
+            {/* --- 1. MODIFICA LARGHEZZA COLONNE --- */}
             <TableRow>
-              <TableHead>PC Info</TableHead>
-              {/* --- 1. AGGIUNTA COLONNA HOSTNAME --- */}
-              <TableHead>Hostname</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Assegnato a</TableHead>
-              <TableHead>Stato</TableHead>
-              <TableHead>Garanzia</TableHead>
-              <TableHead className="text-right pr-4"></TableHead> 
+              <TableHead className="w-[20%]">PC Info</TableHead>
+              <TableHead className="w-[15%]">Hostname</TableHead>
+              <TableHead className="w-[20%]">Cliente</TableHead>
+              <TableHead className="w-[15%]">Assegnato a</TableHead>
+              <TableHead className="w-[10%]">Stato</TableHead>
+              <TableHead className="w-[15%]">Garanzia</TableHead>
+              <TableHead className="w-[5%] text-right pr-4"></TableHead> 
             </TableRow>
           </TableHeader>
           <motion.tbody
@@ -171,9 +171,9 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                     <div className="text-xs text-gray-400 capitalize">{pc.type}</div>
                   </div>
                 </TableCell>
-                {/* --- 2. AGGIUNTA CELLA CON IL VALORE HOSTNAME --- */}
                 <TableCell>
-                  <div className="text-sm font-medium text-gray-900">{pc.hostname || 'N/D'}</div>
+                  {/* --- 2. MODIFICA STILE HOSTNAME --- */}
+                  <div className="text-base font-bold text-gray-900">{pc.hostname || 'N/D'}</div>
                 </TableCell>
                 <TableCell>
                   <div className="text-sm text-gray-900">{pc.client.name}</div>
