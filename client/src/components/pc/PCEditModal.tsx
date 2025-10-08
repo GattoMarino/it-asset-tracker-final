@@ -9,7 +9,6 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale/it";
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import {
   Dialog,
   DialogContent,
@@ -71,10 +70,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
 
   useEffect(() => {
     if (pc) {
-      form.reset({
-        ...pc,
-        warrantyExpiry: pc.warrantyExpiry ? new Date(pc.warrantyExpiry) : null,
-      });
+      form.reset({ ...pc, warrantyExpiry: pc.warrantyExpiry ? new Date(pc.warrantyExpiry) : null });
     }
   }, [pc, form, isOpen]);
 
@@ -104,7 +100,6 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
     },
   });
 
-
   const onSubmit = (values: EditComputerSchema) => {
     updateMutation.mutate(values);
   };
@@ -114,12 +109,25 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Modifica PC</DialogTitle>
-          <DialogDescription>
-            Modifica i dettagli per il PC con seriale: {pc?.serial}
-          </DialogDescription>
+          <DialogDescription>Modifica i dettagli per il PC con seriale: {pc?.serial}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            {/* --- CAMPO HOSTNAME AGGIUNTO --- */}
+            <FormField
+              control={form.control}
+              name="hostname"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hostname</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Es. PC-MARIOROSSI" {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4 items-end">
               <FormField
                 control={form.control}
@@ -128,12 +136,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                   <FormItem>
                     <FormLabel>Stato</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || ''}>
-                      <FormControl>
-                        {/* --- 1. Aggiunta altezza fissa h-10 --- */}
-                        <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Seleziona uno stato" />
-                        </SelectTrigger>
-                      </FormControl>
+                      <FormControl><SelectTrigger className="h-10"><SelectValue placeholder="Seleziona uno stato" /></SelectTrigger></FormControl>
                       <SelectContent>
                         <SelectItem value="active">Attivo</SelectItem>
                         <SelectItem value="maintenance">In Assistenza</SelectItem>
@@ -155,31 +158,14 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              // --- 2. Aggiunta altezza fissa h-10 ---
-                              "pl-3 text-left font-normal h-10",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(new Date(field.value), "PPP", { locale: it })
-                            ) : (
-                              <span>Scegli una data</span>
-                            )}
+                          <Button variant={"outline"} className={cn("pl-3 text-left font-normal h-10", !field.value && "text-muted-foreground")}>
+                            {field.value ? format(new Date(field.value), "PPP", { locale: it }) : <span>Scegli una data</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value ? new Date(field.value) : undefined}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date("1900-01-01")}
-                          initialFocus
-                        />
+                        <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={field.onChange} disabled={(date) => date < new Date("1900-01-01")} initialFocus />
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
@@ -194,9 +180,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Assegnato a</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nome Cognome" {...field} value={field.value || ''} />
-                  </FormControl>
+                  <FormControl><Input placeholder="Nome Cognome" {...field} value={field.value || ''} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -207,41 +191,28 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Note</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Aggiungi note..." {...field} value={field.value || ''} />
-                  </FormControl>
+                  <FormControl><Textarea placeholder="Aggiungi note..." {...field} value={field.value || ''} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter className="!justify-between pt-4 sm:pt-6">
               <AlertDialog open={isDeleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-                <AlertDialogTrigger asChild>
-                  <Button type="button" variant="destructive">
-                    <Trash2 className="mr-2 h-4 w-4" /> Elimina
-                  </Button>
-                </AlertDialogTrigger>
+                <AlertDialogTrigger asChild><Button type="button" variant="destructive"><Trash2 className="mr-2 h-4 w-4" /> Elimina</Button></AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Questa azione non può essere annullata. Eliminerà permanentemente il PC e tutti i suoi dati associati.
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>Questa azione non può essere annullata. Eliminerà permanentemente il PC e tutti i suoi dati associati.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Annulla</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
-                      {deleteMutation.isPending ? "Eliminazione..." : "Sì, elimina"}
-                    </AlertDialogAction>
+                    <AlertDialogAction onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>{deleteMutation.isPending ? "Eliminazione..." : "Sì, elimina"}</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              
               <div className="flex gap-2">
                 <Button type="button" variant="ghost" onClick={onClose}>Annulla</Button>
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? "Salvataggio..." : "Salva Modifiche"}
-                </Button>
+                <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? "Salvataggio..." : "Salva Modifiche"}</Button>
               </div>
             </DialogFooter>
           </form>

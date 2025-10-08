@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,8 +43,9 @@ export default function PCForm() {
       serial: "",
       brand: "",
       model: "",
-      type: "",
-      clientId: 0,
+      hostname: "", // Aggiunto valore di default
+      type: undefined,
+      clientId: undefined,
       assignedTo: "",
       status: "active",
       notes: "",
@@ -94,7 +94,6 @@ export default function PCForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* Basic Information */}
         <div>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Informazioni Base</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -151,6 +150,21 @@ export default function PCForm() {
                 </FormItem>
               )}
             />
+            
+            {/* --- CAMPO HOSTNAME AGGIUNTO --- */}
+            <FormField
+              control={form.control}
+              name="hostname"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hostname</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Es. PC-MARIOROSSI" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
@@ -179,7 +193,6 @@ export default function PCForm() {
           </div>
         </div>
 
-        {/* Client and Assignment */}
         <div>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Assegnazione</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -224,7 +237,6 @@ export default function PCForm() {
           </div>
         </div>
 
-        {/* Warranty and Additional Info */}
         <div>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Garanzia e Note</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -237,8 +249,8 @@ export default function PCForm() {
                   <FormControl>
                     <Input 
                       type="date" 
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value || null)}
+                      value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
+                      onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -291,7 +303,6 @@ export default function PCForm() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex justify-end space-x-4 pt-6">
           <Button type="button" variant="outline" onClick={handleCancel}>
             <X className="mr-2" size={16} />

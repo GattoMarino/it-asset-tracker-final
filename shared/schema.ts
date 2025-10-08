@@ -16,6 +16,8 @@ export const computers = pgTable("computers", {
   serial: text("serial").notNull().unique(),
   brand: text("brand").notNull(),
   model: text("model").notNull(),
+  // --- MODIFICA QUI: Aggiunto il campo hostname ---
+  hostname: text("hostname"),
   type: text("type").notNull(),
   clientId: integer("client_id").references(() => clients.id).notNull(),
   assignedTo: text("assigned_to"),
@@ -49,7 +51,6 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   hashedPassword: text("hashed_password").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  // --- MODIFICA QUI: Aggiunti i campi per la 2FA ---
   twoFactorCode: text("two_factor_code"),
   twoFactorCodeExpiresAt: timestamp("two_factor_code_expires_at"),
 });
