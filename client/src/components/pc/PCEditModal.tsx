@@ -113,7 +113,7 @@ export default function PCEditModal({ pc, isOpen, onClose }: PCEditModalProps) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            {/* --- CAMPO HOSTNAME AGGIUNTO --- */}
+            {/* --- MODIFICA QUI: Aggiunto il campo Hostname --- */}
             <FormField
               control={form.control}
               name="hostname"
