@@ -144,11 +144,12 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
           <TableHeader>
             <TableRow>
               <TableHead>PC Info</TableHead>
+              {/* --- 1. AGGIUNTA COLONNA HOSTNAME --- */}
+              <TableHead>Hostname</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Assegnato a</TableHead>
               <TableHead>Stato</TableHead>
               <TableHead>Garanzia</TableHead>
-              {/* --- 1. Spostato a sinistra riducendo il padding destro (pr-4) --- */}
               <TableHead className="text-right pr-4"></TableHead> 
             </TableRow>
           </TableHeader>
@@ -170,6 +171,10 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                     <div className="text-xs text-gray-400 capitalize">{pc.type}</div>
                   </div>
                 </TableCell>
+                {/* --- 2. AGGIUNTA CELLA CON IL VALORE HOSTNAME --- */}
+                <TableCell>
+                  <div className="text-sm font-medium text-gray-900">{pc.hostname || 'N/D'}</div>
+                </TableCell>
                 <TableCell>
                   <div className="text-sm text-gray-900">{pc.client.name}</div>
                   {pc.client.type && (
@@ -189,7 +194,7 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                 <TableCell>
                   {getWarrantyStatus(pc.warrantyExpiry)}
                 </TableCell>
-                <TableCell className="text-right pr-4"> {/* --- 1. Spostato a sinistra riducendo il padding destro (pr-4) --- */}
+                <TableCell className="text-right pr-4">
                   <div className="flex justify-end space-x-2">
                     <Button
                       variant="ghost"
@@ -197,7 +202,6 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                       onClick={() => onViewPC(pc)}
                       className="text-primary hover:text-blue-800"
                     >
-                      {/* --- 2. Icona ingrandita --- */}
                       <Eye size={24} />
                     </Button>
                     <Button
@@ -206,7 +210,6 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                       className="text-yellow-600 hover:text-yellow-800"
                       onClick={() => onEditPC(pc)}
                     >
-                      {/* --- 2. Icona ingrandita --- */}
                       <Edit size={24} />
                     </Button>
                   </div>
