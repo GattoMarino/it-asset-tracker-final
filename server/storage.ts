@@ -128,17 +128,30 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // --- FUNZIONE MODIFICATA ---
   async createComputer(insertComputer: InsertComputer): Promise<Computer> {
     const [computer] = await db.insert(computers).values({
       ...insertComputer,
       updatedAt: new Date()
     }).returning();
     
+    // 1. Aggiunge la prima voce per la creazione del PC
     await this.addComputerHistory({
       computerId: computer.id,
       action: "created",
-      description: `PC ${computer.serial} created and assigned to client`,
+      description: `PC ${computer.serial} creato`,
     });
+
+    // 2. Se è stato assegnato a qualcuno, aggiunge una seconda voce per l'assegnazione
+    if (insertComputer.assignedTo) {
+      await this.addComputerHistory({
+        computerId: computer.id,
+        action: "assigned",
+        description: `PC assegnato a ${insertComputer.assignedTo}`,
+        previousValue: "Non assegnato",
+        newValue: insertComputer.assignedTo,
+      });
+    }
 
     return computer;
   }
@@ -267,7 +280,6 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  // --- FUNZIONI AGGIUNTE PER 2FA ---
   async setTwoFactorCodeForUser(userId: number, code: string, expiresAt: Date): Promise<void> {
     await db.update(users)
       .set({ twoFactorCode: code, twoFactorCodeExpiresAt: expiresAt })
