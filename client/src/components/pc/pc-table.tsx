@@ -142,7 +142,6 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            {/* --- 1. MODIFICA LARGHEZZA COLONNE --- */}
             <TableRow>
               <TableHead className="w-[20%]">PC Info</TableHead>
               <TableHead className="w-[15%]">Hostname</TableHead>
@@ -172,8 +171,14 @@ export default function PCTable({ computers, isLoading, onViewPC, onEditPC }: PC
                   </div>
                 </TableCell>
                 <TableCell>
-                  {/* --- 2. MODIFICA STILE HOSTNAME --- */}
-                  <div className="text-base font-bold text-gray-900">{pc.hostname || 'N/D'}</div>
+                  {/* --- MODIFICA QUI --- */}
+                  <div className="text-base font-medium text-gray-900">
+                    {pc.hostname ? (
+                      <span>{pc.hostname}</span>
+                    ) : (
+                      <span className="italic text-gray-400">N/D</span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="text-sm text-gray-900">{pc.client.name}</div>
