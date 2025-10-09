@@ -127,7 +127,6 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
               <CardContent className="p-6">
                 <h4 className="text-lg font-medium text-gray-800 mb-4">Informazioni Hardware</h4>
                 <div className="space-y-3">
-                  {/* --- MODIFICA QUI: Aggiunto Hostname --- */}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Hostname:</span>
                     <span className="font-medium">{pc.hostname || "N/D"}</span>
@@ -283,10 +282,7 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
               <Printer className="mr-2" size={16} />
               Stampa
             </Button>
-            <Button variant="outline" className="text-yellow-600 border-yellow-600 hover:bg-yellow-50">
-              <Edit className="mr-2" size={16} />
-              Modifica
-            </Button>
+            {/* --- BOTTONE MODIFICA RIMOSSO --- */}
             <Button>
               <History className="mr-2" size={16} />
               Storico Completo
