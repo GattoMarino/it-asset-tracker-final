@@ -11,7 +11,8 @@ import AddPC from "@/pages/add-pc";
 import Reports from "@/pages/reports";
 import NotFound from "@/pages/not-found";
 import { Login } from "./pages/Login";
-import { TwoFactorPage } from "./pages/TwoFactorPage"; // 1. Importa la nuova pagina
+import { TwoFactorPage } from "./pages/TwoFactorPage";
+import ComputerHistoryPage from "./pages/ComputerHistoryPage"; // 1. Importa la nuova pagina
 
 import Sidebar from "@/components/layout/sidebar";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -28,6 +29,10 @@ function PrivateLayout() {
           <Route path="/clients" component={() => <ProtectedRoute component={Clients} />} />
           <Route path="/add-pc" component={() => <ProtectedRoute component={AddPC} />} />
           <Route path="/reports" component={() => <ProtectedRoute component={Reports} />} />
+          
+          {/* 2. Aggiungi la nuova rotta per lo storico */}
+          <Route path="/computers/:id/history" component={() => <ProtectedRoute component={ComputerHistoryPage} />} />
+
           <Route component={NotFound} />
         </Switch>
       </main>
@@ -39,7 +44,6 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
-      {/* 2. Aggiungi la nuova rotta per la 2FA */}
       <Route path="/verify-2fa" component={TwoFactorPage} />
       <Route>
         <PrivateLayout />

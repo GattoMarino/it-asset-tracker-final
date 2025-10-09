@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter"; // 1. Importa useLocation
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Printer, Edit, History, Clock, Activity } from "lucide-react";
+import { Printer, History, Clock, Activity } from "lucide-react";
 import type { ComputerWithClient, ComputerHistory, ComputerActivity } from "@shared/schema";
 import ActivityForm from "./activity-form";
 import PCEditForm from "./pc-edit-form";
@@ -23,6 +24,7 @@ interface PCDetailModalProps {
 }
 
 export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProps) {
+  const [, setLocation] = useLocation(); // 2. Aggiungi questo hook
   const { data: pcDetails } = useQuery({
     queryKey: ["/api/computers", pc.id],
     enabled: isOpen,
@@ -47,68 +49,50 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
 
   const getActionIcon = (action: string) => {
     switch (action) {
-      case "created":
-        return "🆕";
-      case "assigned":
-        return "👤";
-      case "status_changed":
-        return "🔄";
-      case "note_added":
-        return "📝";
-      default:
-        return "ℹ️";
+      case "created": return "🆕";
+      case "assigned": return "👤";
+      case "status_changed": return "🔄";
+      case "note_added": return "📝";
+      default: return "ℹ️";
     }
   };
 
   const getActionColor = (action: string) => {
     switch (action) {
-      case "created":
-        return "border-blue-400";
-      case "assigned":
-        return "border-green-400";
-      case "unassigned":
-        return "border-red-400";
-      case "status_changed":
-        return "border-yellow-400";
-      case "note_added":
-        return "border-purple-400";
-      default:
-        return "border-gray-400";
+      case "created": return "border-blue-400";
+      case "assigned": return "border-green-400";
+      case "unassigned": return "border-red-400";
+      case "status_changed": return "border-yellow-400";
+      case "note_added": return "border-purple-400";
+      default: return "border-gray-400";
     }
   };
 
   const getActivityTypeLabel = (type: string) => {
     switch (type) {
-      case "hw_support":
-        return "Supporto Hardware";
-      case "sw_support":
-        return "Supporto Software";
-      case "local_assistance":
-        return "Assistenza Locale";
-      case "remote_assistance":
-        return "Assistenza Remoto";
-      case "other":
-        return "Altro";
-      default:
-        return type;
+      case "hw_support": return "Supporto Hardware";
+      case "sw_support": return "Supporto Software";
+      case "local_assistance": return "Assistenza Locale";
+      case "remote_assistance": return "Assistenza Remoto";
+      case "other": return "Altro";
+      default: return type;
     }
   };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case "hw_support":
-        return "🔧";
-      case "sw_support":
-        return "💻";
-      case "local_assistance":
-        return "🏢";
-      case "remote_assistance":
-        return "🌐";
-      case "other":
-        return "📋";
-      default:
-        return "📋";
+      case "hw_support": return "🔧";
+      case "sw_support": return "💻";
+      case "local_assistance": return "🏢";
+      case "remote_assistance": return "🌐";
+      case "other": return "📋";
+      default: return "📋";
     }
+  };
+
+  const handleShowFullHistory = () => {
+    onClose(); // Chiude il modale
+    setLocation(`/computers/${pc.id}/history`); // Naviga alla nuova pagina
   };
 
   return (
@@ -122,7 +106,6 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
         
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* PC Information */}
             <Card>
               <CardContent className="p-6">
                 <h4 className="text-lg font-medium text-gray-800 mb-4">Informazioni Hardware</h4>
@@ -171,19 +154,12 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
               </CardContent>
             </Card>
 
-            {/* History and Activities Section */}
             <Card>
               <CardContent className="p-6">
                 <Tabs defaultValue="history" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="history" className="flex items-center gap-2">
-                      <History size={16} />
-                      Storico Assegnazioni
-                    </TabsTrigger>
-                    <TabsTrigger value="activities" className="flex items-center gap-2">
-                      <Activity size={16} />
-                      Attività di Supporto
-                    </TabsTrigger>
+                    <TabsTrigger value="history" className="flex items-center gap-2"><History size={16} /> Storico Assegnazioni</TabsTrigger>
+                    <TabsTrigger value="activities" className="flex items-center gap-2"><Activity size={16} /> Attività di Supporto</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="history" className="mt-4">
@@ -202,25 +178,16 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
                                   <span className="mr-2">{getActionIcon(entry.action)}</span>
                                   <p className="font-medium text-gray-800">{entry.description}</p>
                                 </div>
-                                {entry.newValue && (
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    Nuovo valore: {entry.newValue}
-                                  </p>
-                                )}
+                                {entry.newValue && <p className="text-sm text-gray-600 mt-1">Nuovo valore: {entry.newValue}</p>}
                               </div>
                               <div className="flex items-center text-xs text-gray-500 ml-4">
                                 <Clock size={12} className="mr-1" />
-                                {formatDistanceToNow(new Date(entry.createdAt), { 
-                                  addSuffix: true, 
-                                  locale: it 
-                                })}
+                                {formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true, locale: it })}
                               </div>
                             </div>
                           </div>
                         ))
-                      ) : (
-                        <p className="text-gray-500 text-center py-4">Nessuna assegnazione registrata</p>
-                      )}
+                      ) : <p className="text-gray-500 text-center py-4">Nessuna assegnazione registrata</p>}
                     </div>
                   </TabsContent>
                   
@@ -240,23 +207,16 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
                                   <span className="mr-2">{getActivityIcon(activity.type)}</span>
                                   <p className="font-medium text-gray-800">{getActivityTypeLabel(activity.type)}</p>
                                 </div>
-                                {activity.notes && (
-                                  <p className="text-sm text-gray-600 mt-1">{activity.notes}</p>
-                                )}
+                                {activity.notes && <p className="text-sm text-gray-600 mt-1">{activity.notes}</p>}
                               </div>
                               <div className="flex items-center text-xs text-gray-500 ml-4">
                                 <Clock size={12} className="mr-1" />
-                                {formatDistanceToNow(new Date(activity.createdAt), { 
-                                  addSuffix: true, 
-                                  locale: it 
-                                })}
+                                {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true, locale: it })}
                               </div>
                             </div>
                           </div>
                         ))
-                      ) : (
-                        <p className="text-gray-500 text-center py-4">Nessuna attività registrata</p>
-                      )}
+                      ) : <p className="text-gray-500 text-center py-4">Nessuna attività registrata</p>}
                     </div>
                   </TabsContent>
                 </Tabs>
@@ -264,29 +224,19 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
             </Card>
           </div>
 
-          {/* Current Notes */}
           {pc.notes && (
             <Card className="mt-8">
               <CardContent className="p-6">
                 <h4 className="text-lg font-medium text-gray-800 mb-4">Note Correnti</h4>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-gray-700">{pc.notes}</p>
-                </div>
+                <div className="bg-gray-50 rounded-lg p-4"><p className="text-gray-700">{pc.notes}</p></div>
               </CardContent>
             </Card>
           )}
 
-          {/* Action Buttons */}
           <div className="flex justify-end space-x-4 mt-8">
-            <Button variant="outline">
-              <Printer className="mr-2" size={16} />
-              Stampa
-            </Button>
-            {/* --- BOTTONE MODIFICA RIMOSSO --- */}
-            <Button>
-              <History className="mr-2" size={16} />
-              Storico Completo
-            </Button>
+            <Button variant="outline"><Printer className="mr-2" size={16} /> Stampa</Button>
+            {/* 3. Aggiunto l'onClick al pulsante */}
+            <Button onClick={handleShowFullHistory}><History className="mr-2" size={16} /> Storico Completo</Button>
           </div>
         </div>
       </DialogContent>
