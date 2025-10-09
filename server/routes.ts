@@ -4,7 +4,6 @@ import { storage } from "./storage.js";
 import { insertClientSchema, insertComputerSchema, insertComputerActivitySchema } from "../shared/schema.js";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-// --- IMPORT AGGIUNTI PER 2FA ---
 import { randomInt } from "crypto";
 import { sendTwoFactorCode } from "./email.js";
 
@@ -39,7 +38,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // --- ROTTA LOGIN SOSTITUITA CON LOGICA 2FA ---
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -49,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!isPasswordValid) return res.status(401).json({ message: "Credenziali non valide" });
 
       const code = randomInt(100000, 999999).toString();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // Scadenza 10 minuti
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
       const hashedCode = await bcrypt.hash(code, 10);
       
       await storage.setTwoFactorCodeForUser(user.id, hashedCode, expiresAt);
@@ -62,7 +60,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // --- NUOVA ROTTA AGGIUNTA PER VERIFICA 2FA ---
   app.post("/api/auth/verify-2fa", async (req, res) => {
     try {
       const { email, code } = req.body;
@@ -113,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ id: user.id, email: user.email });
   });
 
-  // --- ROTTE CLIENTI (INVARIATE) ---
+  // --- ROTTE CLIENTI ---
   app.get("/api/clients", isAuthenticated, async (req, res) => {
     try {
       const clients = await storage.getAllClients();
@@ -160,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // --- ROTTE COMPUTER (INVARIATE) ---
+  // --- ROTTE COMPUTER ---
   app.get("/api/computers", isAuthenticated, async (req, res) => {
     try {
       const { query, clientId, status, brand } = req.query;
@@ -261,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Eliminazione del computer fallita" });
     }
   });
-
+  
   app.get("/api/computers/:id/history", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -269,6 +266,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(history);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch computer history" });
+    }
+  });
+  
+  // --- NUOVA ROTTA PER LO STORICO COMPLETO AGGIUNTA QUI ---
+  app.get("/api/computers/:id/full-history", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const fullHistory = await storage.getFullHistoryForComputer(id);
+      res.json(fullHistory);
+    } catch (error) {
+      console.error("Failed to fetch full history:", error);
+      res.status(500).json({ message: "Failed to fetch full computer history" });
     }
   });
 
@@ -301,7 +310,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // --- ROTTE DASHBOARD (INVARIATE) ---
+  // --- ROTTE DASHBOARD ---
   app.get("/api/dashboard/stats", isAuthenticated, async (req, res) => {
     try {
       const stats = await storage.getDashboardStats();

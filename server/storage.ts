@@ -163,7 +163,6 @@ export class DatabaseStorage implements IStorage {
     return computer;
   }
 
-  // --- FUNZIONE MODIFICATA ---
   async searchComputers(query: string, filters?: {
     clientId?: number;
     status?: string;
@@ -177,9 +176,7 @@ export class DatabaseStorage implements IStorage {
           ilike(computers.serial, `%${query}%`),
           ilike(computers.model, `%${query}%`),
           ilike(computers.assignedTo, `%${query}%`),
-          ilike(computers.brand, `%${query}%`),
-          // Aggiunta la ricerca per hostname
-          ilike(computers.hostname, `%${query}%`)
+          ilike(computers.brand, `%${query}%`)
         )
       );
     }
@@ -239,6 +236,33 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(computerActivities.createdAt));
   }
   
+  // --- FUNZIONE AGGIUNTA PER LO STORICO COMPLETO ---
+  async getFullHistoryForComputer(computerId: number): Promise<any[]> {
+    const history = await db.select().from(computerHistory).where(eq(computerHistory.computerId, computerId));
+    const activities = await db.select().from(computerActivities).where(eq(computerActivities.computerId, computerId));
+
+    const formattedHistory = history.map(item => ({
+      id: `hist-${item.id}`,
+      type: 'history',
+      title: item.action,
+      description: item.description,
+      date: item.createdAt,
+    }));
+
+    const formattedActivities = activities.map(item => ({
+      id: `act-${item.id}`,
+      type: 'activity',
+      title: item.type,
+      description: item.notes,
+      date: item.createdAt,
+    }));
+
+    const combined = [...formattedHistory, ...formattedActivities];
+    combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return combined;
+  }
+
   async getRecentActivity(): Promise<ComputerHistory[]> {
     return await db
       .select()
