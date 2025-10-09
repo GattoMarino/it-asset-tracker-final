@@ -10,7 +10,23 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Printer, History, Clock, Activity } from "lucide-react";
+import { 
+  Printer, 
+  History, 
+  Clock, 
+  Activity,
+  // --- 1. IMPORT NUOVE ICONE ---
+  PlusCircle,
+  User,
+  UserX,
+  RefreshCw,
+  StickyNote,
+  Wrench,
+  Code,
+  Building,
+  Globe,
+  ClipboardList
+} from "lucide-react";
 import type { ComputerWithClient, ComputerHistory, ComputerActivity } from "@shared/schema";
 import ActivityForm from "./activity-form";
 import PCEditForm from "./pc-edit-form";
@@ -24,7 +40,7 @@ interface PCDetailModalProps {
 }
 
 export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProps) {
-  const [, setLocation] = useLocation(); // Hook per la navigazione
+  const [, setLocation] = useLocation();
   const { data: pcDetails } = useQuery({
     queryKey: ["/api/computers", pc.id],
     enabled: isOpen,
@@ -32,28 +48,24 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "active":
-        return <Badge className="bg-green-100 text-green-800">Attivo</Badge>;
-      case "maintenance":
-        return <Badge className="bg-yellow-100 text-yellow-800">In Assistenza</Badge>;
-      case "dismissed":
-        return <Badge className="bg-gray-100 text-gray-800">Dismesso</Badge>;
-      case "preparation":
-        return <Badge className="bg-blue-100 text-blue-800">In Preparazione</Badge>;
-      case "storage":
-        return <Badge className="bg-purple-100 text-purple-800">In Magazzino</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
+      case "active": return <Badge className="bg-green-100 text-green-800">Attivo</Badge>;
+      case "maintenance": return <Badge className="bg-yellow-100 text-yellow-800">In Assistenza</Badge>;
+      case "dismissed": return <Badge className="bg-gray-100 text-gray-800">Dismesso</Badge>;
+      case "preparation": return <Badge className="bg-blue-100 text-blue-800">In Preparazione</Badge>;
+      case "storage": return <Badge className="bg-purple-100 text-purple-800">In Magazzino</Badge>;
+      default: return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
+  // --- 2. FUNZIONE ICONE STORICO AGGIORNATA ---
   const getActionIcon = (action: string) => {
     switch (action) {
-      case "created": return "🆕";
-      case "assigned": return "👤";
-      case "status_changed": return "🔄";
-      case "note_added": return "📝";
-      default: return "ℹ️";
+      case "created": return <PlusCircle size={16} className="text-blue-500" />;
+      case "assigned": return <User size={16} className="text-green-500" />;
+      case "unassigned": return <UserX size={16} className="text-red-500" />;
+      case "status_changed": return <RefreshCw size={16} className="text-yellow-500" />;
+      case "note_added": return <StickyNote size={16} className="text-purple-500" />;
+      default: return <History size={16} className="text-gray-500" />;
     }
   };
 
@@ -79,30 +91,28 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
     }
   };
 
+  // --- 2. FUNZIONE ICONE ATTIVITÀ AGGIORNATA ---
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case "hw_support": return "🔧";
-      case "sw_support": return "💻";
-      case "local_assistance": return "🏢";
-      case "remote_assistance": return "🌐";
-      case "other": return "📋";
-      default: return "📋";
+      case "hw_support": return <Wrench size={16} className="text-orange-500" />;
+      case "sw_support": return <Code size={16} className="text-indigo-500" />;
+      case "local_assistance": return <Building size={16} className="text-cyan-500" />;
+      case "remote_assistance": return <Globe size={16} className="text-sky-500" />;
+      case "other": return <ClipboardList size={16} className="text-gray-500" />;
+      default: return <ClipboardList size={16} className="text-gray-500" />;
     }
   };
   
-  // Funzione per gestire il click sul pulsante
   const handleShowFullHistory = () => {
-    onClose(); // Chiude il modale corrente
-    setLocation(`/computers/${pc.id}/history`); // Naviga alla nuova pagina dello storico
+    onClose();
+    setLocation(`/computers/${pc.id}/history`);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            Dettagli PC - {pc.serial}
-          </DialogTitle>
+          <DialogTitle>Dettagli PC - {pc.serial}</DialogTitle>
         </DialogHeader>
         
         <div className="p-6">
@@ -111,46 +121,15 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
               <CardContent className="p-6">
                 <h4 className="text-lg font-medium text-gray-800 mb-4">Informazioni Hardware</h4>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Hostname:</span>
-                    <span className="font-medium">{pc.hostname || "N/D"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Seriale:</span>
-                    <span className="font-medium">{pc.serial}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Marca:</span>
-                    <span className="font-medium capitalize">{pc.brand}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Modello:</span>
-                    <span className="font-medium">{pc.model}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tipologia:</span>
-                    <span className="font-medium capitalize">{pc.type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Cliente:</span>
-                    <span className="font-medium">{pc.client.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Assegnato a:</span>
-                    <span className="font-medium">{pc.assignedTo || "Non assegnato"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Stato:</span>
-                    {getStatusBadge(pc.status)}
-                  </div>
-                  {pc.warrantyExpiry && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Scadenza Garanzia:</span>
-                      <span className="font-medium">
-                        {new Date(pc.warrantyExpiry).toLocaleDateString('it-IT')}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between"><span className="text-gray-600">Hostname:</span><span className="font-medium">{pc.hostname || "N/D"}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Seriale:</span><span className="font-medium">{pc.serial}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Marca:</span><span className="font-medium capitalize">{pc.brand}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Modello:</span><span className="font-medium">{pc.model}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Tipologia:</span><span className="font-medium capitalize">{pc.type}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Cliente:</span><span className="font-medium">{pc.client.name}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Assegnato a:</span><span className="font-medium">{pc.assignedTo || "Non assegnato"}</span></div>
+                  <div className="flex justify-between items-center"><span className="text-gray-600">Stato:</span>{getStatusBadge(pc.status)}</div>
+                  {pc.warrantyExpiry && (<div className="flex justify-between"><span className="text-gray-600">Scadenza Garanzia:</span><span className="font-medium">{new Date(pc.warrantyExpiry).toLocaleDateString('it-IT')}</span></div>)}
                 </div>
               </CardContent>
             </Card>
@@ -159,13 +138,15 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
               <CardContent className="p-6">
                 <Tabs defaultValue="history" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="history" className="flex items-center gap-2"><History size={16} /> Storico Assegnazioni</TabsTrigger>
+                    {/* --- 3. TAB RINOMINATA --- */}
+                    <TabsTrigger value="history" className="flex items-center gap-2"><History size={16} /> Storico Device</TabsTrigger>
                     <TabsTrigger value="activities" className="flex items-center gap-2"><Activity size={16} /> Attività di Supporto</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="history" className="mt-4">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-medium text-gray-800">Storico Assegnazioni</h4>
+                      {/* --- 3. TITOLO RINOMINATO --- */}
+                      <h4 className="text-lg font-medium text-gray-800">Storico Device</h4>
                       {pcDetails && <PCEditForm pc={pcDetails} />}
                     </div>
                     
@@ -175,8 +156,8 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
                           <div key={entry.id} className={`border-l-4 ${getActionColor(entry.action)} pl-4 py-2`}>
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <div className="flex items-center">
-                                  <span className="mr-2">{getActionIcon(entry.action)}</span>
+                                <div className="flex items-center gap-2">
+                                  {getActionIcon(entry.action)}
                                   <p className="font-medium text-gray-800">{entry.description}</p>
                                 </div>
                                 {entry.newValue && <p className="text-sm text-gray-600 mt-1">Nuovo valore: {entry.newValue}</p>}
@@ -201,11 +182,11 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
                     <div className="space-y-4 max-h-64 overflow-y-auto">
                       {pcDetails?.activities && pcDetails.activities.length > 0 ? (
                         pcDetails.activities.map((activity: ComputerActivity) => (
-                          <div key={activity.id} className="border-l-4 border-blue-400 pl-4 py-2">
+                          <div key={activity.id} className="border-l-4 border-gray-400 pl-4 py-2">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <div className="flex items-center">
-                                  <span className="mr-2">{getActivityIcon(activity.type)}</span>
+                                <div className="flex items-center gap-2">
+                                  {getActivityIcon(activity.type)}
                                   <p className="font-medium text-gray-800">{getActivityTypeLabel(activity.type)}</p>
                                 </div>
                                 {activity.notes && <p className="text-sm text-gray-600 mt-1">{activity.notes}</p>}
@@ -236,7 +217,6 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
 
           <div className="flex justify-end space-x-4 mt-8">
             <Button variant="outline"><Printer className="mr-2" size={16} /> Stampa</Button>
-            {/* Pulsante collegato alla funzione */}
             <Button onClick={handleShowFullHistory}><History className="mr-2" size={16} /> Storico Completo</Button>
           </div>
         </div>
