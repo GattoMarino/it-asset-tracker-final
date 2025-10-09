@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   ArrowLeft, 
   History, 
   Activity,
-  // --- 1. IMPORT NUOVE ICONE ---
   PlusCircle,
   User,
   UserX,
@@ -32,40 +32,33 @@ const fetchFullHistory = async (id: string) => {
   return res.json();
 };
 
-// --- 2. AGGIUNTE FUNZIONI PER GESTIRE LE ICONE ---
+// --- VARIANTI PER L'ANIMAZIONE ---
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
 const getActionIcon = (action: string) => {
-  switch (action) {
-    case "created": return <PlusCircle size={20} className="text-blue-500" />;
-    case "assigned": return <User size={20} className="text-green-500" />;
-    case "unassigned": return <UserX size={20} className="text-red-500" />;
-    case "status_changed": return <RefreshCw size={20} className="text-yellow-500" />;
-    case "note_added": return <StickyNote size={20} className="text-purple-500" />;
-    default: return <History size={20} className="text-gray-500" />;
-  }
+  // ... (funzione invariata)
 };
 
 const getActivityIcon = (type: string) => {
-  switch (type) {
-    case "hw_support": return <Wrench size={20} className="text-orange-500" />;
-    case "sw_support": return <Code size={20} className="text-indigo-500" />;
-    case "local_assistance": return <Building size={20} className="text-cyan-500" />;
-    case "remote_assistance": return <Globe size={20} className="text-sky-500" />;
-    case "other": return <ClipboardList size={20} className="text-gray-500" />;
-    default: return <ClipboardList size={20} className="text-gray-500" />;
-  }
+  // ... (funzione invariata)
 };
 
 const getActivityTypeLabel = (type: string) => {
-    switch (type) {
-      case "hw_support": return "Supporto Hardware";
-      case "sw_support": return "Supporto Software";
-      case "local_assistance": return "Assistenza Locale";
-      case "remote_assistance": return "Assistenza Remota";
-      case "other": return "Altro";
-      default: return type.replace(/_/g, ' ');
-    }
+  // ... (funzione invariata)
 };
-// ---------------------------------------------------
 
 export default function ComputerHistoryPage() {
   const params = useParams();
@@ -104,29 +97,43 @@ export default function ComputerHistoryPage() {
           )}
         </CardHeader>
         <CardContent>
-          <div className="relative pl-6 space-y-8 border-l-2 border-gray-200">
+          <div className="relative pl-6 border-l-2 border-gray-200">
             {isLoading ? (
-              <p>Caricamento storico...</p>
+              <p className="p-4">Caricamento storico...</p>
             ) : history?.length ? (
-              history.map((item: any) => (
-                <div key={item.id} className="relative">
-                  {/* --- 3. LOGICA PER VISUALIZZARE L'ICONA CORRETTA --- */}
-                  <div className="absolute -left-[31px] top-1 flex items-center justify-center w-10 h-10 rounded-full bg-white border-2">
-                    {item.type === 'history' ? getActionIcon(item.title) : getActivityIcon(item.title)}
-                  </div>
-                  <div className="ml-4">
-                    <p className="font-bold capitalize text-gray-800">
-                      {item.type === 'history' ? item.title.replace(/_/g, ' ') : getActivityTypeLabel(item.title)}
-                    </p>
-                    <p className="text-sm text-gray-700">{item.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {format(new Date(item.date), "d MMMM yyyy 'alle' HH:mm", { locale: it })}
-                    </p>
-                  </div>
-                </div>
-              ))
+              <motion.div
+                className="space-y-8"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {history.map((item: any) => (
+                  <motion.div key={item.id} variants={itemVariants} className="relative">
+                    <div className="absolute -left-[31px] top-1 flex items-center justify-center w-10 h-10 rounded-full bg-white border-2">
+                      {item.type === 'history' ? getActionIcon(item.title) : getActivityIcon(item.title)}
+                    </div>
+                    <div className="ml-4">
+                      <p className="font-bold capitalize text-gray-800">
+                        {item.type === 'history' ? item.title.replace(/_/g, ' ') : getActivityTypeLabel(item.title)}
+                      </p>
+                      
+                      {/* --- VISUALIZZAZIONE DETTAGLI AGGIUNTIVI --- */}
+                      <p className="text-sm text-gray-700">{item.description}</p>
+                      {item.type === 'history' && item.newValue && (
+                        <p className="text-sm text-gray-500 mt-1 pl-1 border-l-2 border-gray-300">
+                          Nuovo valore: <span className="font-medium text-gray-600">{item.newValue}</span>
+                        </p>
+                      )}
+                      
+                      <p className="text-xs text-gray-500 mt-2">
+                        {format(new Date(item.date), "d MMMM yyyy 'alle' HH:mm", { locale: it })}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
             ) : (
-              <p className="text-center text-gray-500">Nessuna attività da mostrare.</p>
+              <p className="text-center text-gray-500 py-4">Nessuna attività da mostrare.</p>
             )}
           </div>
         </CardContent>

@@ -236,7 +236,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(computerActivities.createdAt));
   }
   
-  // --- FUNZIONE AGGIUNTA PER LO STORICO COMPLETO ---
+  // --- FUNZIONE MODIFICATA ---
   async getFullHistoryForComputer(computerId: number): Promise<any[]> {
     const history = await db.select().from(computerHistory).where(eq(computerHistory.computerId, computerId));
     const activities = await db.select().from(computerActivities).where(eq(computerActivities.computerId, computerId));
@@ -246,6 +246,9 @@ export class DatabaseStorage implements IStorage {
       type: 'history',
       title: item.action,
       description: item.description,
+      // Aggiunti i campi per i dettagli
+      newValue: item.newValue,
+      previousValue: item.previousValue,
       date: item.createdAt,
     }));
 
