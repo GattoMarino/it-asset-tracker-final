@@ -1,129 +1,226 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Edit } from "lucide-react";
-import type { ComputerWithHistory } from "@shared/schema";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Printer, 
+  History, 
+  Clock, 
+  Activity,
+  // --- 1. IMPORT NUOVE ICONE ---
+  PlusCircle,
+  User,
+  UserX,
+  RefreshCw,
+  StickyNote,
+  Wrench,
+  Code,
+  Building,
+  Globe,
+  ClipboardList
+} from "lucide-react";
+import type { ComputerWithClient, ComputerHistory, ComputerActivity } from "@shared/schema";
+import ActivityForm from "./activity-form";
+import PCEditForm from "./pc-edit-form";
+import { formatDistanceToNow } from "date-fns";
+import { it } from "date-fns/locale";
 
-const editSchema = z.object({
-  assignedTo: z.string().nullable(),
-});
-
-type FormData = z.infer<typeof editSchema>;
-
-interface PCEditFormProps {
-  pc: ComputerWithHistory;
+interface PCDetailModalProps {
+  pc: ComputerWithClient;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function PCEditForm({ pc }: PCEditFormProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const form = useForm<FormData>({
-    resolver: zodResolver(editSchema),
-    defaultValues: {
-      assignedTo: pc.assignedTo || "",
-    },
+export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProps) {
+  const [, setLocation] = useLocation();
+  const { data: pcDetails } = useQuery({
+    queryKey: ["/api/computers", pc.id],
+    enabled: isOpen,
   });
 
-  const updatePCMutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const updateData = {
-        assignedTo: data.assignedTo || null,
-      };
-      return apiRequest("PATCH", `/api/computers/${pc.id}`, updateData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/computers", pc.id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/computers"] });
-      toast({
-        title: "PC aggiornato",
-        description: "Le modifiche sono state salvate con successo.",
-      });
-      setIsOpen(false);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Errore",
-        description: error.message || "Errore durante l'aggiornamento del PC",
-        variant: "destructive",
-      });
-    },
-  });
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "active": return <Badge className="bg-green-100 text-green-800">Attivo</Badge>;
+      case "maintenance": return <Badge className="bg-yellow-100 text-yellow-800">In Assistenza</Badge>;
+      case "dismissed": return <Badge className="bg-gray-100 text-gray-800">Dismesso</Badge>;
+      case "preparation": return <Badge className="bg-blue-100 text-blue-800">In Preparazione</Badge>;
+      case "storage": return <Badge className="bg-purple-100 text-purple-800">In Magazzino</Badge>;
+      default: return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
 
-  const onSubmit = (data: FormData) => {
-    updatePCMutation.mutate(data);
+  // --- 2. FUNZIONE ICONE STORICO AGGIORNATA ---
+  const getActionIcon = (action: string) => {
+    switch (action) {
+      case "created": return <PlusCircle size={16} className="text-blue-500" />;
+      case "assigned": return <User size={16} className="text-green-500" />;
+      case "unassigned": return <UserX size={16} className="text-red-500" />;
+      case "status_changed": return <RefreshCw size={16} className="text-yellow-500" />;
+      case "note_added": return <StickyNote size={16} className="text-purple-500" />;
+      default: return <History size={16} className="text-gray-500" />;
+    }
+  };
+
+  const getActionColor = (action: string) => {
+    switch (action) {
+      case "created": return "border-blue-400";
+      case "assigned": return "border-green-400";
+      case "unassigned": return "border-red-400";
+      case "status_changed": return "border-yellow-400";
+      case "note_added": return "border-purple-400";
+      default: return "border-gray-400";
+    }
+  };
+
+  const getActivityTypeLabel = (type: string) => {
+    switch (type) {
+      case "hw_support": return "Supporto Hardware";
+      case "sw_support": return "Supporto Software";
+      case "local_assistance": return "Assistenza Locale";
+      case "remote_assistance": return "Assistenza Remota";
+      case "other": return "Altro";
+      default: return type;
+    }
+  };
+
+  // --- 2. FUNZIONE ICONE ATTIVITÀ AGGIORNATA ---
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "hw_support": return <Wrench size={16} className="text-orange-500" />;
+      case "sw_support": return <Code size={16} className="text-indigo-500" />;
+      case "local_assistance": return <Building size={16} className="text-cyan-500" />;
+      case "remote_assistance": return <Globe size={16} className="text-sky-500" />;
+      case "other": return <ClipboardList size={16} className="text-gray-500" />;
+      default: return <ClipboardList size={16} className="text-gray-500" />;
+    }
+  };
+  
+  const handleShowFullHistory = () => {
+    onClose();
+    setLocation(`/computers/${pc.id}/history`);
   };
 
   return (
-    <>
-      <Button 
-        onClick={() => setIsOpen(true)} 
-        variant="outline" 
-        size="sm"
-      >
-        <Edit size={16} className="mr-2" />
-        {/* --- TESTO DEL PULSANTE MODIFICATO --- */}
-        Modifica assegnazione
-      </Button>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Dettagli PC - {pc.serial}</DialogTitle>
+        </DialogHeader>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card>
+              <CardContent className="p-6">
+                <h4 className="text-lg font-medium text-gray-800 mb-4">Informazioni Hardware</h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between"><span className="text-gray-600">Hostname:</span><span className="font-medium">{pc.hostname || "N/D"}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Seriale:</span><span className="font-medium">{pc.serial}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Marca:</span><span className="font-medium capitalize">{pc.brand}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Modello:</span><span className="font-medium">{pc.model}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Tipologia:</span><span className="font-medium capitalize">{pc.type}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Cliente:</span><span className="font-medium">{pc.client.name}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Assegnato a:</span><span className="font-medium">{pc.assignedTo || "Non assegnato"}</span></div>
+                  <div className="flex justify-between items-center"><span className="text-gray-600">Stato:</span>{getStatusBadge(pc.status)}</div>
+                  {pc.warrantyExpiry && (<div className="flex justify-between"><span className="text-gray-600">Scadenza Garanzia:</span><span className="font-medium">{new Date(pc.warrantyExpiry).toLocaleDateString('it-IT')}</span></div>)}
+                </div>
+              </CardContent>
+            </Card>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Modifica PC - {pc.serial}</DialogTitle>
-            <DialogDescription>
-              Modifica l'assegnazione del PC. Le modifiche alle assegnazioni vengono registrate automaticamente nello storico.
-            </DialogDescription>
-          </DialogHeader>
+            <Card>
+              <CardContent className="p-6">
+                <Tabs defaultValue="history" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    {/* --- 3. TAB RINOMINATA --- */}
+                    <TabsTrigger value="history" className="flex items-center gap-2"><History size={16} /> Storico Device</TabsTrigger>
+                    <TabsTrigger value="activities" className="flex items-center gap-2"><Activity size={16} /> Attività di Supporto</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="history" className="mt-4">
+                    <div className="flex items-center justify-between mb-4">
+                      {/* --- 3. TITOLO RINOMINATO --- */}
+                      <h4 className="text-lg font-medium text-gray-800">Storico Device</h4>
+                      {pcDetails && <PCEditForm pc={pcDetails} />}
+                    </div>
+                    
+                    <div className="space-y-4 max-h-64 overflow-y-auto">
+                      {pcDetails?.history?.length ? (
+                        pcDetails.history.map((entry: ComputerHistory) => (
+                          <div key={entry.id} className={`border-l-4 ${getActionColor(entry.action)} pl-4 py-2`}>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  {getActionIcon(entry.action)}
+                                  <p className="font-medium text-gray-800">{entry.description}</p>
+                                </div>
+                                {entry.newValue && <p className="text-sm text-gray-600 mt-1">Nuovo valore: {entry.newValue}</p>}
+                              </div>
+                              <div className="flex items-center text-xs text-gray-500 ml-4">
+                                <Clock size={12} className="mr-1" />
+                                {formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true, locale: it })}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : <p className="text-gray-500 text-center py-4">Nessuna assegnazione registrata</p>}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="activities" className="mt-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-medium text-gray-800">Attività di Supporto</h4>
+                      <ActivityForm computerId={pc.id} />
+                    </div>
+                    
+                    <div className="space-y-4 max-h-64 overflow-y-auto">
+                      {pcDetails?.activities && pcDetails.activities.length > 0 ? (
+                        pcDetails.activities.map((activity: ComputerActivity) => (
+                          <div key={activity.id} className="border-l-4 border-gray-400 pl-4 py-2">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  {getActivityIcon(activity.type)}
+                                  <p className="font-medium text-gray-800">{getActivityTypeLabel(activity.type)}</p>
+                                </div>
+                                {activity.notes && <p className="text-sm text-gray-600 mt-1">{activity.notes}</p>}
+                              </div>
+                              <div className="flex items-center text-xs text-gray-500 ml-4">
+                                <Clock size={12} className="mr-1" />
+                                {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true, locale: it })}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : <p className="text-gray-500 text-center py-4">Nessuna attività registrata</p>}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="assignedTo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assegnato a</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Nome del'utente a cui è assegnato il Pc"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {pc.notes && (
+            <Card className="mt-8">
+              <CardContent className="p-6">
+                <h4 className="text-lg font-medium text-gray-800 mb-4">Note Correnti</h4>
+                <div className="bg-gray-50 rounded-lg p-4"><p className="text-gray-700">{pc.notes}</p></div>
+              </CardContent>
+            </Card>
+          )}
 
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsOpen(false)}
-                  disabled={updatePCMutation.isPending}
-                >
-                  Annulla
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={updatePCMutation.isPending}
-                >
-                  {updatePCMutation.isPending ? "Salvataggio..." : "Salva Modifiche"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </>
+          <div className="flex justify-end space-x-4 mt-8">
+            <Button variant="outline"><Printer className="mr-2" size={16} /> Stampa</Button>
+            <Button onClick={handleShowFullHistory}><History className="mr-2" size={16} /> Storico Completo</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
