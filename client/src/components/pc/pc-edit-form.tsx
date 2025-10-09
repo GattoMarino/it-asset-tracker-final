@@ -71,7 +71,8 @@ export default function PCEditForm({ pc }: PCEditFormProps) {
         size="sm"
       >
         <Edit size={16} className="mr-2" />
-        Modifica
+        {/* --- TESTO DEL PULSANTE MODIFICATO --- */}
+        Modifica assegnazione
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
