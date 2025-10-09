@@ -128,21 +128,18 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // --- FUNZIONE MODIFICATA ---
   async createComputer(insertComputer: InsertComputer): Promise<Computer> {
     const [computer] = await db.insert(computers).values({
       ...insertComputer,
       updatedAt: new Date()
     }).returning();
     
-    // 1. Aggiunge la prima voce per la creazione del PC
     await this.addComputerHistory({
       computerId: computer.id,
       action: "created",
       description: `PC ${computer.serial} creato`,
     });
 
-    // 2. Se è stato assegnato a qualcuno, aggiunge una seconda voce per l'assegnazione
     if (insertComputer.assignedTo) {
       await this.addComputerHistory({
         computerId: computer.id,
@@ -166,6 +163,7 @@ export class DatabaseStorage implements IStorage {
     return computer;
   }
 
+  // --- FUNZIONE MODIFICATA ---
   async searchComputers(query: string, filters?: {
     clientId?: number;
     status?: string;
@@ -179,7 +177,9 @@ export class DatabaseStorage implements IStorage {
           ilike(computers.serial, `%${query}%`),
           ilike(computers.model, `%${query}%`),
           ilike(computers.assignedTo, `%${query}%`),
-          ilike(computers.brand, `%${query}%`)
+          ilike(computers.brand, `%${query}%`),
+          // Aggiunta la ricerca per hostname
+          ilike(computers.hostname, `%${query}%`)
         )
       );
     }
