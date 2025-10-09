@@ -94,7 +94,7 @@ export default function PCEditForm({ pc }: PCEditFormProps) {
                     <FormLabel>Assegnato a</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Nome della persona a cui è assegnato il PC"
+                        placeholder="Nome del'utente a cui è assegnato il PC"
                         {...field}
                         value={field.value || ""}
                       />
