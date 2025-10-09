@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter"; // 1. Importa useLocation
+import { useLocation } from "wouter";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ interface PCDetailModalProps {
 }
 
 export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProps) {
-  const [, setLocation] = useLocation(); // 2. Aggiungi questo hook
+  const [, setLocation] = useLocation(); // Hook per la navigazione
   const { data: pcDetails } = useQuery({
     queryKey: ["/api/computers", pc.id],
     enabled: isOpen,
@@ -73,7 +73,7 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
       case "hw_support": return "Supporto Hardware";
       case "sw_support": return "Supporto Software";
       case "local_assistance": return "Assistenza Locale";
-      case "remote_assistance": return "Assistenza Remoto";
+      case "remote_assistance": return "Assistenza Remota";
       case "other": return "Altro";
       default: return type;
     }
@@ -89,10 +89,11 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
       default: return "📋";
     }
   };
-
+  
+  // Funzione per gestire il click sul pulsante
   const handleShowFullHistory = () => {
-    onClose(); // Chiude il modale
-    setLocation(`/computers/${pc.id}/history`); // Naviga alla nuova pagina
+    onClose(); // Chiude il modale corrente
+    setLocation(`/computers/${pc.id}/history`); // Naviga alla nuova pagina dello storico
   };
 
   return (
@@ -235,7 +236,7 @@ export default function PCDetailModal({ pc, isOpen, onClose }: PCDetailModalProp
 
           <div className="flex justify-end space-x-4 mt-8">
             <Button variant="outline"><Printer className="mr-2" size={16} /> Stampa</Button>
-            {/* 3. Aggiunto l'onClick al pulsante */}
+            {/* Pulsante collegato alla funzione */}
             <Button onClick={handleShowFullHistory}><History className="mr-2" size={16} /> Storico Completo</Button>
           </div>
         </div>
